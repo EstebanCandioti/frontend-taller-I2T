@@ -1,0 +1,86 @@
+@if (loading()) {
+  <app-loading-spinner message="Cargando detalle..." />
+} @else if (hardware(); as hw) {
+  <div class="page-header">
+    <div>
+      <a routerLink="/hardware" class="back-link">
+        <span class="material-icon">arrow_back</span>
+        Volver al listado
+      </a>
+      <h1 class="page-title">{{ hw.nroInventario }}</h1>
+      <p class="page-subtitle">{{ hw.clase }} — {{ hw.marca }} {{ hw.modelo }}</p>
+    </div>
+    <div class="page-actions">
+      <a [routerLink]="['/hardware', hw.id, 'editar']" class="btn btn-primary">
+        <span class="material-icon">edit</span>
+        Editar
+      </a>
+      <button class="btn btn-danger" (click)="onEliminar()">
+        <span class="material-icon">delete</span>
+        Eliminar
+      </button>
+    </div>
+  </div>
+
+  <div class="detail-card">
+    <div class="detail-grid">
+      <div class="detail-item">
+        <span class="detail-label">Nro. Inventario</span>
+        <span class="detail-value">{{ hw.nroInventario }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Clase</span>
+        <span class="detail-value">{{ hw.clase }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Marca</span>
+        <span class="detail-value">{{ hw.marca }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Modelo</span>
+        <span class="detail-value">{{ hw.modelo }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Nro. Serie</span>
+        <span class="detail-value">{{ hw.nroSerie || '—' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Ubicación Física</span>
+        <span class="detail-value">{{ hw.ubicacionFisica }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Juzgado</span>
+        <span class="detail-value">{{ hw.juzgadoNombre }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Fecha de Alta</span>
+        <span class="detail-value">{{ hw.fechaAlta | date:'dd/MM/yyyy' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Contrato</span>
+        <span class="detail-value">
+          @if (hw.contratoId) {
+            <a [routerLink]="['/contratos', hw.contratoId]" class="detail-link">
+              {{ hw.contratoNombre }}
+            </a>
+            <span class="contrato-badge" [class.vencido]="hw.contratoVencido" [class.vigente]="!hw.contratoVencido">
+              {{ hw.contratoVencido ? 'Vencido' : 'Vigente' }}
+            </span>
+            @if (hw.contratoFechaFin) {
+              <span class="contrato-fecha">hasta {{ hw.contratoFechaFin | date:'dd/MM/yyyy' }}</span>
+            }
+          } @else {
+            Sin contrato
+          }
+        </span>
+      </div>
+    </div>
+
+    @if (hw.observaciones) {
+      <div class="detail-section">
+        <h3 class="section-title">Observaciones</h3>
+        <p class="detail-text">{{ hw.observaciones }}</p>
+      </div>
+    }
+  </div>
+}

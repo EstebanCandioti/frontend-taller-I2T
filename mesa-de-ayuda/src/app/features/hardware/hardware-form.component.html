@@ -1,0 +1,130 @@
+<div class="page-header">
+  <h1 class="page-title">{{ isEditing ? 'Editar Hardware' : 'Nuevo Hardware' }}</h1>
+</div>
+
+@if (loading()) {
+  <app-loading-spinner message="Cargando hardware..." />
+} @else {
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card">
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="nroInventario" class="form-label">
+          Nro. Inventario <span class="required">*</span>
+        </label>
+        <input id="nroInventario" formControlName="nroInventario" class="form-control"
+          [class.invalid]="isInvalid('nroInventario')" maxlength="50"
+          placeholder="Ej: INV-2024-001">
+        @if (isInvalid('nroInventario')) {
+          <span class="form-error">El número de inventario es obligatorio.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="clase" class="form-label">
+          Clase <span class="required">*</span>
+        </label>
+        <select id="clase" formControlName="clase" class="form-control"
+          [class.invalid]="isInvalid('clase')">
+          <option value="">— Seleccionar clase —</option>
+          @for (c of clases; track c) {
+            <option [value]="c">{{ c }}</option>
+          }
+        </select>
+        @if (isInvalid('clase')) {
+          <span class="form-error">Seleccione una clase de hardware.</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="marca" class="form-label">
+          Marca <span class="required">*</span>
+        </label>
+        <input id="marca" formControlName="marca" class="form-control"
+          [class.invalid]="isInvalid('marca')" maxlength="100"
+          placeholder="Ej: HP, Dell, Epson...">
+        @if (isInvalid('marca')) {
+          <span class="form-error">La marca es obligatoria.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="modelo" class="form-label">
+          Modelo <span class="required">*</span>
+        </label>
+        <input id="modelo" formControlName="modelo" class="form-control"
+          [class.invalid]="isInvalid('modelo')" maxlength="150"
+          placeholder="Ej: ProDesk 400 G7">
+        @if (isInvalid('modelo')) {
+          <span class="form-error">El modelo es obligatorio.</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="nroSerie" class="form-label">Nro. Serie</label>
+        <input id="nroSerie" formControlName="nroSerie" class="form-control"
+          maxlength="100" placeholder="Opcional">
+      </div>
+
+      <div class="form-group">
+        <label for="ubicacionFisica" class="form-label">
+          Ubicación Física <span class="required">*</span>
+        </label>
+        <input id="ubicacionFisica" formControlName="ubicacionFisica" class="form-control"
+          [class.invalid]="isInvalid('ubicacionFisica')" maxlength="200"
+          placeholder="Ej: Piso 3, Oficina 301">
+        @if (isInvalid('ubicacionFisica')) {
+          <span class="form-error">La ubicación física es obligatoria.</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="juzgadoId" class="form-label">
+          Juzgado <span class="required">*</span>
+        </label>
+        <select id="juzgadoId" formControlName="juzgadoId" class="form-control"
+          [class.invalid]="isInvalid('juzgadoId')">
+          <option value="">— Seleccionar juzgado —</option>
+          @for (j of juzgados(); track j.id) {
+            <option [value]="j.id">{{ j.nombre }}</option>
+          }
+        </select>
+        @if (isInvalid('juzgadoId')) {
+          <span class="form-error">Debe seleccionar un juzgado.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="contratoId" class="form-label">Contrato</label>
+        <select id="contratoId" formControlName="contratoId" class="form-control">
+          <option value="">— Sin contrato —</option>
+          @for (c of contratos(); track c.id) {
+            <option [value]="c.id">{{ c.nombre }} ({{ c.proveedor }}) — {{ c.vencido ? 'Vencido' : 'Vigente' }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="observaciones" class="form-label">Observaciones</label>
+      <textarea id="observaciones" formControlName="observaciones" class="form-control textarea"
+        rows="3" placeholder="Notas adicionales (opcional)"></textarea>
+    </div>
+
+    <div class="form-actions">
+      <a routerLink="/hardware" class="btn btn-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary" [disabled]="form.invalid || form.pristine || submitting()">
+        @if (submitting()) {
+          <span class="spinner-btn"></span>
+        }
+        {{ isEditing ? 'Guardar Cambios' : 'Registrar Hardware' }}
+      </button>
+    </div>
+  </form>
+}

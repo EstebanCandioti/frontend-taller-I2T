@@ -1,0 +1,20 @@
+@if (dialog.visible()) {
+  <div class="overlay" (click)="dialog.cancel()">
+    <div class="dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <h3 class="dialog-title">{{ dialog.data().title }}</h3>
+      <p class="dialog-message">{{ dialog.data().message }}</p>
+      <div class="dialog-actions">
+        <button class="btn btn-cancel" (click)="dialog.cancel()">
+          {{ dialog.data().cancelText || 'Cancelar' }}
+        </button>
+        <button
+          class="btn btn-confirm"
+          [class]="'btn btn-confirm btn--' + (dialog.data().type || 'danger')"
+          (click)="dialog.accept()"
+        >
+          {{ dialog.data().confirmText || 'Confirmar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

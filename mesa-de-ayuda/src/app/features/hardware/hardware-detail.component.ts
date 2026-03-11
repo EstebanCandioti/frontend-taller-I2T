@@ -1,0 +1,68 @@
+import { Component, inject, signal, OnInit, DestroyRef } from '@angular/core';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DatePipe } from '@angular/common';
+
+import { HardwareService } from '../../core/services/hardware.service';
+import { ToastService } from '../../core/services/toast.service';
+import { ConfirmDialogService } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { HardwareResponse } from '../../core/models';
+import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+
+@Component({
+  selector: 'app-hardware-detail',
+  standalone: true,
+  imports: [RouterLink, DatePipe, LoadingSpinnerComponent],
+  templateUrl: './hardware-detail.component.html',
+  styleUrl: './hardware-detail.component.scss'
+})
+export class HardwareDetailComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly hardwareService = inject(HardwareService);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  readonly hardware = signal<HardwareResponse | null>(null);
+  readonly loading = signal(true);
+
+  ngOnInit(): void {
+    const id = +this.route.snapshot.paramMap.get('id')!;
+    this.hardwareService.obtenerPorId(id).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: data => {
+        this.hardware.set(data);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.toast.error('No se pudo cargar el hardware.');
+        this.router.navigate(['/hardware']);
+      }
+    });
+  }
+
+  async onEliminar(): Promise<void> {
+    const hw = this.hardware();
+    if (!hw) return;
+
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Eliminar Hardware',
+      message: `¿Eliminar "${hw.nroInventario} - ${hw.marca} ${hw.modelo}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      type: 'danger'
+    });
+
+    if (!confirmed) return;
+
+    this.hardwareService.eliminar(hw.id).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: () => {
+        this.toast.success('Hardware eliminado correctamente.');
+        this.router.navigate(['/hardware']);
+      }
+    });
+  }
+}

@@ -1,0 +1,75 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>Mesa de Ayuda IT</h1>
+      <p>Poder Judicial Provincial</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="error-banner">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-group">
+        <label for="email">Email <span class="required">*</span></label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="usuario@justiciasantafe.gov.ar"
+          [class.invalid]="hasError('email', 'required') || hasError('email', 'email')"
+          autocomplete="email"
+        />
+        @if (hasError('email', 'required')) {
+          <span class="field-error">El email es requerido.</span>
+        }
+        @if (hasError('email', 'email')) {
+          <span class="field-error">Ingrese un email válido.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password">Contraseña <span class="required">*</span></label>
+        <div class="password-wrapper">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="Ingrese su contraseña"
+            [class.invalid]="hasError('password', 'required') || hasError('password', 'minlength')"
+            autocomplete="current-password"
+          />
+          <button
+            type="button"
+            class="toggle-password"
+            (click)="togglePassword()"
+            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+          >
+            {{ showPassword() ? '🙈' : '👁' }}
+          </button>
+        </div>
+        @if (hasError('password', 'required')) {
+          <span class="field-error">La contraseña es requerida.</span>
+        }
+        @if (hasError('password', 'minlength')) {
+          <span class="field-error">Mínimo 6 caracteres.</span>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="btn-login"
+        [disabled]="loading()"
+      >
+        @if (loading()) {
+          <span class="spinner"></span>
+          Ingresando...
+        } @else {
+          Iniciar sesión
+        }
+      </button>
+    </form>
+  </div>
+</div>

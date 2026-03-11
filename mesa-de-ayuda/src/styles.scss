@@ -1,0 +1,171 @@
+// === Variables CSS globales ===
+:root {
+  // Colores primarios
+  --primary: #1a3a5c;
+  --primary-dark: #15304d;
+  --primary-light: #2a5a8c;
+  --primary-50: rgba(26, 58, 92, 0.05);
+  --primary-100: rgba(26, 58, 92, 0.1);
+
+  // Grises
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
+  // Semánticos
+  --success: #16a34a;
+  --success-light: #dcfce7;
+  --warning: #d97706;
+  --warning-light: #fef3c7;
+  --error: #dc2626;
+  --error-light: #fef2f2;
+  --info: #2563eb;
+  --info-light: #dbeafe;
+
+  // Badges de prioridad
+  --priority-critica: #dc2626;
+  --priority-critica-bg: #fef2f2;
+  --priority-alta: #ea580c;
+  --priority-alta-bg: #fff7ed;
+  --priority-media: #2563eb;
+  --priority-media-bg: #dbeafe;
+  --priority-baja: #6b7280;
+  --priority-baja-bg: #f3f4f6;
+
+  // Badges de estado
+  --estado-solicitado: #6b7280;
+  --estado-solicitado-bg: #f3f4f6;
+  --estado-asignado: #2563eb;
+  --estado-asignado-bg: #dbeafe;
+  --estado-en-curso: #d97706;
+  --estado-en-curso-bg: #fef3c7;
+  --estado-cerrado: #16a34a;
+  --estado-cerrado-bg: #dcfce7;
+
+  // Layout
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 64px;
+  --header-height: 56px;
+  --border-radius: 6px;
+  --border-radius-lg: 8px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+
+  // Transiciones
+  --transition-fast: 0.15s ease;
+  --transition: 0.2s ease;
+  --transition-slow: 0.3s ease;
+}
+
+// === Reset y base ===
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--gray-800);
+  background: var(--gray-100);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// === Utilidades de texto ===
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// === Scrollbar personalizado ===
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 3px;
+
+  &:hover {
+    background: var(--gray-400);
+  }
+}
+
+// === Alias de danger ===
+:root {
+  --danger: var(--error);
+  --danger-light: var(--error-light);
+}
+
+// === Estilos globales de validación de formularios ===
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--error);
+  padding: 0.25rem 0.5rem;
+  margin-top: 0.25rem;
+  background: var(--error-light);
+  border-radius: var(--border-radius);
+  border-left: 3px solid var(--error);
+  animation: errorSlideIn 0.2s ease-out;
+}
+
+@keyframes errorSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-control.invalid,
+.ng-invalid.ng-touched:not(form) {
+  border-color: var(--error) !important;
+  background-color: #fff5f5;
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+  }
+}
+
+// Label con asterisco rojo para requeridos
+.required {
+  color: var(--error);
+  font-weight: 700;
+}

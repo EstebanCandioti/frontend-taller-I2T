@@ -1,0 +1,144 @@
+<div class="page-header">
+  <h1 class="page-title">Tickets</h1>
+  @if (isAdminOrOperario()) {
+    <a routerLink="/tickets/nuevo" class="btn btn-primary">
+      <span class="material-icon">add</span>
+      Nuevo Ticket
+    </a>
+  }
+</div>
+
+<!-- Filtros -->
+<div class="filters-bar">
+  <div class="filters-row">
+    <div class="filter-group">
+      <label for="filtroEstado">Estado</label>
+      <select
+        id="filtroEstado"
+        [ngModel]="filtroEstado()"
+        (ngModelChange)="filtroEstado.set($event); onFiltroChange()">
+        <option value="">Todos</option>
+        @for (e of estados; track e) {
+          <option [value]="e">{{ e === 'EN_CURSO' ? 'En Curso' : (e | titlecase) }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="filtroPrioridad">Prioridad</label>
+      <select
+        id="filtroPrioridad"
+        [ngModel]="filtroPrioridad()"
+        (ngModelChange)="filtroPrioridad.set($event); onFiltroChange()">
+        <option value="">Todas</option>
+        @for (p of prioridades; track p) {
+          <option [value]="p">{{ p | titlecase }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="filtroJuzgado">Juzgado</label>
+      <select
+        id="filtroJuzgado"
+        [ngModel]="filtroJuzgadoId()"
+        (ngModelChange)="filtroJuzgadoId.set($event ? +$event : null); onFiltroChange()">
+        <option [ngValue]="null">Todos</option>
+        @for (j of juzgados(); track j.id) {
+          <option [ngValue]="j.id">{{ j.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    @if (isAdminOrOperario()) {
+      <div class="filter-group">
+        <label for="filtroTecnico">Técnico</label>
+        <select
+          id="filtroTecnico"
+          [ngModel]="filtroTecnicoId()"
+          (ngModelChange)="filtroTecnicoId.set($event ? +$event : null); onFiltroChange()">
+          <option [ngValue]="null">Todos</option>
+          @for (t of tecnicos(); track t.id) {
+            <option [ngValue]="t.id">{{ t.nombreCompleto }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="filter-group filter-search">
+      <label for="filtroBusqueda">Buscar</label>
+      <input
+        id="filtroBusqueda"
+        type="text"
+        placeholder="Título, descripción..."
+        [value]="filtroBusqueda()"
+        (input)="onBusquedaInput($any($event.target).value)" />
+    </div>
+
+    <button class="btn btn-ghost btn-clear" (click)="limpiarFiltros()" title="Limpiar filtros">
+      <span class="material-icon">filter_alt_off</span>
+    </button>
+  </div>
+</div>
+
+<!-- Contenido -->
+@if (loading()) {
+  <app-loading-spinner message="Cargando tickets..." />
+} @else if (error()) {
+  <app-empty-state
+    icon="error_outline"
+    title="Error al cargar"
+    message="No se pudieron cargar los tickets. Intente nuevamente."
+    actionLabel="Reintentar"
+    (action)="onFiltroChange()" />
+} @else if (tickets().length === 0) {
+  <app-empty-state
+    icon="confirmation_number"
+    title="Sin tickets"
+    message="No se encontraron tickets con los filtros aplicados."
+    [actionLabel]="isAdminOrOperario() ? 'Crear ticket' : ''"
+    (action)="router.navigate(['/tickets/nuevo'])" />
+} @else {
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th class="col-id">N°</th>
+          <th class="col-titulo">Título</th>
+          <th class="col-estado">Estado</th>
+          <th class="col-prioridad">Prioridad</th>
+          <th class="col-juzgado">Juzgado</th>
+          <th class="col-tecnico">Técnico</th>
+          <th class="col-fecha">Fecha</th>
+          <th class="col-acciones">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (ticket of tickets(); track ticket.id) {
+          <tr class="clickable-row" (click)="verDetalle(ticket.id)">
+            <td class="col-id">{{ ticket.id }}</td>
+            <td class="col-titulo">{{ ticket.titulo }}</td>
+            <td class="col-estado">
+              <app-status-badge [value]="ticket.estado" type="estado" />
+            </td>
+            <td class="col-prioridad">
+              <app-status-badge [value]="ticket.prioridad" type="prioridad" />
+            </td>
+            <td class="col-juzgado">{{ ticket.juzgadoNombre }}</td>
+            <td class="col-tecnico">{{ ticket.tecnicoNombreCompleto || '—' }}</td>
+            <td class="col-fecha">{{ ticket.fechaCreacion | date:'dd/MM/yyyy' }}</td>
+            <td class="col-acciones" (click)="$event.stopPropagation()">
+              @if (isAdminOrOperario() && ticket.estado === 'SOLICITADO') {
+                <div class="acciones-group">
+                  <button class="btn-icon" title="Editar" (click)="editarTicket(ticket.id)">
+                    <span class="material-icon">edit</span>
+                  </button>
+                </div>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

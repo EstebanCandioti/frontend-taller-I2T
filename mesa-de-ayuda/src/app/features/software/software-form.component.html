@@ -1,0 +1,114 @@
+<div class="page-header">
+  <h1 class="page-title">{{ isEditing ? 'Editar Software' : 'Nuevo Software' }}</h1>
+</div>
+
+@if (loading()) {
+  <app-loading-spinner message="Cargando software..." />
+} @else {
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card">
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="nombre" class="form-label">
+          Nombre <span class="required">*</span>
+        </label>
+        <input id="nombre" formControlName="nombre" class="form-control"
+          [class.invalid]="isInvalid('nombre')" maxlength="150"
+          placeholder="Ej: Microsoft Office 365">
+        @if (isInvalid('nombre')) {
+          <span class="form-error">El nombre es obligatorio.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="proveedor" class="form-label">
+          Proveedor <span class="required">*</span>
+        </label>
+        <input id="proveedor" formControlName="proveedor" class="form-control"
+          [class.invalid]="isInvalid('proveedor')" maxlength="150"
+          placeholder="Ej: Microsoft">
+        @if (isInvalid('proveedor')) {
+          <span class="form-error">El proveedor es obligatorio.</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="cantidadLicencias" class="form-label">
+          Cantidad de Licencias <span class="required">*</span>
+        </label>
+        <input id="cantidadLicencias" type="number" formControlName="cantidadLicencias" class="form-control"
+          [class.invalid]="isInvalid('cantidadLicencias')" min="1">
+        @if (isInvalid('cantidadLicencias')) {
+          <span class="form-error">Debe ser al menos 1.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="fechaVencimiento" class="form-label">Fecha de Vencimiento</label>
+        <input id="fechaVencimiento" type="date" formControlName="fechaVencimiento" class="form-control">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="contratoId" class="form-label">
+          Contrato <span class="required">*</span>
+        </label>
+        <select id="contratoId" formControlName="contratoId" class="form-control"
+          [class.invalid]="isInvalid('contratoId')">
+          <option value="">— Seleccionar contrato —</option>
+          @for (c of contratos(); track c.id) {
+            <option [value]="c.id">{{ c.nombre }} ({{ c.proveedor }})</option>
+          }
+        </select>
+        @if (isInvalid('contratoId')) {
+          <span class="form-error">El contrato es obligatorio para software.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="juzgadoId" class="form-label">Juzgado</label>
+        <select id="juzgadoId" formControlName="juzgadoId" class="form-control">
+          <option value="">— Sin juzgado específico —</option>
+          @for (j of juzgados(); track j.id) {
+            <option [value]="j.id">{{ j.nombre }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="hardwareId" class="form-label">Hardware asociado</label>
+        <select id="hardwareId" formControlName="hardwareId" class="form-control">
+          <option value="">— Sin hardware asociado —</option>
+          @for (h of hardwareList(); track h.id) {
+            <option [value]="h.id">{{ h.nroInventario }} — {{ h.marca }} {{ h.modelo }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <!-- Spacer -->
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="observaciones" class="form-label">Observaciones</label>
+      <textarea id="observaciones" formControlName="observaciones" class="form-control textarea"
+        rows="3" placeholder="Notas adicionales (opcional)"></textarea>
+    </div>
+
+    <div class="form-actions">
+      <a routerLink="/software" class="btn btn-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary" [disabled]="form.invalid || form.pristine || submitting()">
+        @if (submitting()) {
+          <span class="spinner-btn"></span>
+        }
+        {{ isEditing ? 'Guardar Cambios' : 'Registrar Software' }}
+      </button>
+    </div>
+  </form>
+}

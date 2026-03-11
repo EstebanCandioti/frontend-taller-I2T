@@ -1,0 +1,145 @@
+@if (loading()) {
+  <app-loading-spinner message="Cargando ticket..." />
+} @else if (ticket(); as t) {
+  <!-- Cabecera -->
+  <div class="detail-header">
+    <div class="header-left">
+      <a routerLink="/tickets" class="btn-back">
+        <span class="material-icon">arrow_back</span>
+        Volver
+      </a>
+      <h1 class="detail-title">
+        <span class="ticket-id">#{{ t.id }}</span>
+        {{ t.titulo }}
+      </h1>
+      <div class="badges-row">
+        <app-status-badge [value]="t.estado" type="estado" />
+        <app-status-badge [value]="t.prioridad" type="prioridad" />
+      </div>
+    </div>
+    @if (isAdminOrOperario()) {
+      <div class="header-actions">
+        @if (t.estado === 'SOLICITADO') {
+          <a [routerLink]="['/tickets', t.id, 'editar']" class="btn btn-secondary">
+            <span class="material-icon">edit</span> Editar
+          </a>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline-card">
+    <h3 class="section-title">Progreso</h3>
+    <div class="timeline">
+      @for (step of timeline(); track step.label; let last = $last) {
+        <div class="timeline-step" [class.active]="step.active" [class.completed]="step.completed">
+          <div class="step-dot">
+            <span class="material-icon">{{ step.icon }}</span>
+          </div>
+          @if (!last) {
+            <div class="step-line"></div>
+          }
+          <div class="step-info">
+            <span class="step-label">{{ step.label }}</span>
+            @if (step.date) {
+              <span class="step-date">{{ step.date | date:'dd/MM/yyyy HH:mm' }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Datos principales -->
+  <div class="detail-grid">
+    <div class="detail-card">
+      <h3 class="section-title">Información del Ticket</h3>
+
+      <div class="detail-row">
+        <span class="detail-label">Descripción</span>
+        <p class="detail-value detail-description">{{ t.descripcion }}</p>
+      </div>
+
+      @if (t.tipoRequerimiento) {
+        <div class="detail-row">
+          <span class="detail-label">Tipo de Requerimiento</span>
+          <span class="detail-value">{{ t.tipoRequerimiento }}</span>
+        </div>
+      }
+
+      <div class="detail-row">
+        <span class="detail-label">Juzgado</span>
+        <span class="detail-value">{{ t.juzgadoNombre }}</span>
+      </div>
+
+      @if (t.hardwareNroInventario) {
+        <div class="detail-row">
+          <span class="detail-label">Hardware</span>
+          <span class="detail-value">{{ t.hardwareNroInventario }} — {{ t.hardwareDescripcion }}</span>
+        </div>
+      }
+
+      <div class="detail-row">
+        <span class="detail-label">Creado por</span>
+        <span class="detail-value">{{ t.creadoPorNombreCompleto }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Fecha de creación</span>
+        <span class="detail-value">{{ t.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+    </div>
+
+    <!-- Referente + Técnico -->
+    <div class="detail-side">
+      <!-- Técnico -->
+      <div class="detail-card">
+        <h3 class="section-title">Técnico Asignado</h3>
+        @if (t.tecnicoNombreCompleto) {
+          <div class="tecnico-info">
+            <span class="material-icon tecnico-icon">person</span>
+            <div>
+              <span class="tecnico-name">{{ t.tecnicoNombreCompleto }}</span>
+              @if (t.fechaAsignacion) {
+                <span class="tecnico-date">Asignado el {{ t.fechaAsignacion | date:'dd/MM/yyyy' }}</span>
+              }
+            </div>
+          </div>
+        } @else {
+          <p class="no-data">Sin técnico asignado</p>
+        }
+      </div>
+
+      <!-- Referente -->
+      @if (t.referenteNombre || t.referenteTelefono) {
+        <div class="detail-card">
+          <h3 class="section-title">Referente</h3>
+          @if (t.referenteNombre) {
+            <div class="detail-row">
+              <span class="detail-label">Nombre</span>
+              <span class="detail-value">{{ t.referenteNombre }}</span>
+            </div>
+          }
+          @if (t.referenteTelefono) {
+            <div class="detail-row">
+              <span class="detail-label">Teléfono</span>
+              <span class="detail-value">{{ t.referenteTelefono }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Resolución -->
+      @if (t.estado === 'CERRADO' && t.resolucion) {
+        <div class="detail-card card-resolucion">
+          <h3 class="section-title">Resolución</h3>
+          <p class="detail-value detail-description">{{ t.resolucion }}</p>
+          @if (t.fechaCierre) {
+            <span class="resolucion-date">Cerrado el {{ t.fechaCierre | date:'dd/MM/yyyy HH:mm' }}</span>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}

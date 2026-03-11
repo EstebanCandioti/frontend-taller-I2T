@@ -1,0 +1,87 @@
+.toast-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 400px;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: slideIn 0.25s ease-out;
+  font-size: 0.875rem;
+
+  &--success {
+    background: var(--success-light);
+    color: var(--success);
+    border: 1px solid var(--success);
+  }
+
+  &--error {
+    background: var(--error-light);
+    color: var(--error);
+    border: 1px solid var(--error);
+  }
+
+  &--warning {
+    background: var(--warning-light);
+    color: var(--warning);
+    border: 1px solid var(--warning);
+  }
+
+  &--info {
+    background: var(--info-light);
+    color: var(--info);
+    border: 1px solid var(--info);
+  }
+}
+
+.toast-icon {
+  font-family: 'Material Symbols Outlined', 'Material Icons';
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.125rem;
+  opacity: 0.7;
+  flex-shrink: 0;
+  display: flex;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  .material-icon {
+    font-family: 'Material Symbols Outlined', 'Material Icons';
+    font-size: 18px;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

@@ -1,0 +1,105 @@
+import { Component, inject, OnInit, signal, computed, DestroyRef } from '@angular/core';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import { TicketService } from '../../core/services/ticket.service';
+import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
+import { TicketResponse } from '../../core/models';
+
+import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
+import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+
+interface TimelineStep {
+  label: string;
+  icon: string;
+  date?: string;
+  active: boolean;
+  completed: boolean;
+}
+
+@Component({
+  selector: 'app-ticket-detail',
+  standalone: true,
+  imports: [RouterLink, DatePipe, StatusBadgeComponent, LoadingSpinnerComponent],
+  templateUrl: './ticket-detail.component.html',
+  styleUrl: './ticket-detail.component.scss'
+})
+export class TicketDetailComponent implements OnInit {
+  private readonly ticketService = inject(TicketService);
+  private readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+
+  readonly ticket = signal<TicketResponse | null>(null);
+  readonly loading = signal(true);
+  readonly isAdminOrOperario = computed(() => this.auth.hasRole('Admin', 'Operario'));
+
+  readonly timeline = computed<TimelineStep[]>(() => {
+    const t = this.ticket();
+    if (!t) return [];
+
+    const estados = ['SOLICITADO', 'ASIGNADO', 'EN_CURSO', 'CERRADO'];
+    const idx = estados.indexOf(t.estado);
+
+    return [
+      {
+        label: 'Creado',
+        icon: 'add_circle',
+        date: t.fechaCreacion,
+        active: idx === 0,
+        completed: idx > 0
+      },
+      {
+        label: 'Asignado',
+        icon: 'person_add',
+        date: t.fechaAsignacion,
+        active: idx === 1,
+        completed: idx > 1
+      },
+      {
+        label: 'En Curso',
+        icon: 'engineering',
+        date: undefined,
+        active: idx === 2,
+        completed: idx > 2
+      },
+      {
+        label: 'Cerrado',
+        icon: 'check_circle',
+        date: t.fechaCierre,
+        active: idx === 3,
+        completed: false
+      }
+    ];
+  });
+
+  ngOnInit(): void {
+    const id = +this.route.snapshot.params['id'];
+    this.cargarTicket(id);
+  }
+
+  recargar(): void {
+    const id = +this.route.snapshot.params['id'];
+    this.cargarTicket(id);
+  }
+
+  private cargarTicket(id: number): void {
+    this.loading.set(true);
+    this.ticketService.obtenerPorId(id).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: ticket => {
+        this.ticket.set(ticket);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.toast.error('No se pudo cargar el ticket.');
+        this.router.navigate(['/tickets']);
+      }
+    });
+  }
+}

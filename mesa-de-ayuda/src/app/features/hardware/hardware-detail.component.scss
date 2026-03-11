@@ -1,0 +1,170 @@
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--gray-500);
+  text-decoration: none;
+  margin-bottom: 0.5rem;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--primary);
+    text-decoration: none;
+  }
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin: 0.25rem 0 0;
+}
+
+.page-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+// Detail card
+.detail-card {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--gray-500);
+}
+
+.detail-value {
+  font-size: 0.9375rem;
+  color: var(--gray-900);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.detail-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.contrato-badge {
+  display: inline-flex;
+  padding: 0.0625rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  &.vigente {
+    background: var(--success-light);
+    color: var(--success);
+  }
+
+  &.vencido {
+    background: var(--error-light);
+    color: var(--error);
+  }
+}
+
+.contrato-fecha {
+  font-size: 0.8125rem;
+  color: var(--gray-400);
+}
+
+.detail-section {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--gray-100);
+}
+
+.section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin: 0 0 0.5rem;
+}
+
+.detail-text {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+// Buttons
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1.25rem;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+
+  &:hover {
+    background: var(--primary-dark);
+  }
+}
+
+.btn-danger {
+  background: var(--error);
+  color: #fff;
+
+  &:hover {
+    background: #b91c1c;
+  }
+}
+
+.material-icon {
+  font-family: 'Material Symbols Outlined';
+  font-size: 1.25rem;
+}

@@ -1,0 +1,24 @@
+<header class="header">
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    @for (crumb of (breadcrumbs$ | async) ?? []; track crumb.label; let last = $last) {
+      @if (!last && crumb.route) {
+        <a [routerLink]="crumb.route" class="breadcrumb-link">{{ crumb.label }}</a>
+        <span class="breadcrumb-separator material-icon">chevron_right</span>
+      } @else {
+        <span class="breadcrumb-current">{{ crumb.label }}</span>
+      }
+    }
+  </nav>
+
+  <div class="header-actions">
+    @if (currentUser$ | async; as user) {
+      <div class="user-info">
+        <span class="user-name">{{ user.nombreCompleto }}</span>
+        <span class="user-role">{{ user.rol }}</span>
+      </div>
+    }
+    <button class="btn-logout" (click)="logout()" title="Cerrar sesión">
+      <span class="material-icon">logout</span>
+    </button>
+  </div>
+</header>

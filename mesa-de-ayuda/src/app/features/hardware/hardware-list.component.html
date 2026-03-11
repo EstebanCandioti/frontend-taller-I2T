@@ -1,0 +1,114 @@
+<div class="page-header">
+  <h1 class="page-title">Hardware</h1>
+  <div class="page-actions">
+    <button class="btn btn-primary" routerLink="/hardware/nuevo">
+      <span class="material-icon">add</span>
+      Nuevo Hardware
+    </button>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="filters-card">
+  <div class="filters-row">
+    <div class="filter-group">
+      <label class="filter-label">Clase</label>
+      <select [(ngModel)]="filtroClase" (ngModelChange)="onFiltroChange()" class="filter-control">
+        <option value="">Todas</option>
+        @for (c of clases; track c) {
+          <option [value]="c">{{ c }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Juzgado</label>
+      <select [(ngModel)]="filtroJuzgadoId" (ngModelChange)="onFiltroChange()" class="filter-control">
+        <option value="">Todos</option>
+        @for (j of juzgados(); track j.id) {
+          <option [value]="j.id">{{ j.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group filter-search">
+      <label class="filter-label">Buscar</label>
+      <input
+        type="text"
+        [(ngModel)]="filtroBusqueda"
+        (input)="onSearchInput()"
+        class="filter-control"
+        placeholder="Inventario, marca, modelo...">
+    </div>
+
+    @if (hayFiltrosActivos) {
+      <button class="btn btn-ghost filter-clear" (click)="limpiarFiltros()">
+        <span class="material-icon">clear</span>
+        Limpiar
+      </button>
+    }
+  </div>
+</div>
+
+<!-- Contenido -->
+@if (loading()) {
+  <app-loading-spinner message="Cargando hardware..." />
+} @else if (hardware().length === 0) {
+  <app-empty-state
+    icon="computer"
+    title="No se encontró hardware"
+    [message]="hayFiltrosActivos ? 'No hay resultados con los filtros aplicados.' : 'Aún no se registró hardware en el sistema.'"
+    [actionLabel]="hayFiltrosActivos ? 'Limpiar filtros' : 'Registrar hardware'"
+    (action)="hayFiltrosActivos ? limpiarFiltros() : router.navigate(['/hardware/nuevo'])" />
+} @else {
+  <div class="table-card">
+    <div class="table-info">
+      <span>{{ hardware().length }} registro{{ hardware().length !== 1 ? 's' : '' }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nro. Inventario</th>
+            <th>Clase</th>
+            <th>Marca / Modelo</th>
+            <th>Nro. Serie</th>
+            <th>Juzgado</th>
+            <th>Ubicación</th>
+            <th>Contrato</th>
+            <th class="th-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (h of hardware(); track h.id) {
+            <tr class="clickable-row" (click)="router.navigate(['/hardware', h.id])">
+              <td class="td-bold">{{ h.nroInventario }}</td>
+              <td>{{ h.clase }}</td>
+              <td>{{ h.marca }} {{ h.modelo }}</td>
+              <td>{{ h.nroSerie || '—' }}</td>
+              <td>{{ h.juzgadoNombre }}</td>
+              <td class="text-truncate td-ubicacion">{{ h.ubicacionFisica }}</td>
+              <td>
+                @if (h.contratoId) {
+                  <span class="contrato-badge" [class.vencido]="h.contratoVencido" [class.vigente]="!h.contratoVencido">
+                    {{ h.contratoVencido ? 'Vencido' : 'Vigente' }}
+                  </span>
+                } @else {
+                  <span class="contrato-badge sin">Sin contrato</span>
+                }
+              </td>
+              <td class="td-actions" (click)="$event.stopPropagation()">
+                <button class="btn-icon" title="Editar" (click)="router.navigate(['/hardware', h.id, 'editar'])">
+                  <span class="material-icon">edit</span>
+                </button>
+                <button class="btn-icon btn-icon--danger" title="Eliminar" (click)="onEliminar(h)">
+                  <span class="material-icon">delete</span>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}
