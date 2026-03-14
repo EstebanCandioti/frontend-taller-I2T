@@ -14,7 +14,7 @@ export function roleGuard(...roles: Rol[]): CanActivateFn {
       return true;
     }
 
-    toast.warning('No tiene permisos para acceder a esta sección.');
+    toast.warning('No tiene permisos para acceder a esta seccion.');
     router.navigate(['/dashboard']);
     return false;
   };

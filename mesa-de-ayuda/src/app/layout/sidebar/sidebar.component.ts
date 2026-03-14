@@ -9,6 +9,12 @@ interface NavItem {
   icon: string;
   route: string;
   roles: Rol[];
+  section: string;
+}
+
+interface NavSection {
+  title: string;
+  items: NavItem[];
 }
 
 @Component({
@@ -26,19 +32,48 @@ export class SidebarComponent {
 
   readonly currentRole$ = this.auth.currentRole$;
 
-  readonly navItems: NavItem[] = [
-    { label: 'Dashboard', icon: 'dashboard', route: '/dashboard', roles: ['Admin', 'Operario', 'Técnico'] },
-    { label: 'Tickets', icon: 'confirmation_number', route: '/tickets', roles: ['Admin', 'Operario', 'Técnico'] },
-    { label: 'Hardware', icon: 'computer', route: '/hardware', roles: ['Admin', 'Operario'] },
-    { label: 'Software', icon: 'apps', route: '/software', roles: ['Admin', 'Operario'] },
-    { label: 'Contratos', icon: 'description', route: '/contratos', roles: ['Admin', 'Operario'] },
-    { label: 'Juzgados', icon: 'account_balance', route: '/juzgados', roles: ['Admin', 'Operario'] },
-    { label: 'Usuarios', icon: 'people', route: '/usuarios', roles: ['Admin'] },
-    { label: 'Auditoría', icon: 'history', route: '/auditoria', roles: ['Admin'] },
+  readonly navSections: NavSection[] = [
+    {
+      title: 'Home',
+      items: [
+        { label: 'Dashboard', icon: 'dashboard', route: '/dashboard', roles: ['Admin', 'Operario', 'Tecnico'], section: 'Home' },
+      ]
+    },
+    {
+      title: 'Tickets',
+      items: [
+        { label: 'Tickets', icon: 'confirmation_number', route: '/tickets', roles: ['Admin', 'Operario', 'Tecnico'], section: 'Tickets' },
+      ]
+    },
+    {
+      title: 'Inventario',
+      items: [
+        { label: 'Hardware', icon: 'computer', route: '/hardware', roles: ['Admin', 'Operario'], section: 'Inventario' },
+        { label: 'Software', icon: 'apps', route: '/software', roles: ['Admin', 'Operario'], section: 'Inventario' },
+      ]
+    },
+    {
+      title: 'Administrar',
+      items: [
+        { label: 'Contratos', icon: 'description', route: '/contratos', roles: ['Admin', 'Operario'], section: 'Administrar' },
+        { label: 'Juzgados', icon: 'account_balance', route: '/juzgados', roles: ['Admin', 'Operario'], section: 'Administrar' },
+        { label: 'Usuarios', icon: 'people', route: '/usuarios', roles: ['Admin'], section: 'Administrar' },
+      ]
+    },
+    {
+      title: 'Historial',
+      items: [
+        { label: 'Auditoria', icon: 'history', route: '/auditoria', roles: ['Admin'], section: 'Historial' },
+      ]
+    },
   ];
 
   toggleCollapse(): void {
     this.collapsedChange.emit(!this.collapsed());
+  }
+
+  hasVisibleItems(section: NavSection, role: string | null): boolean {
+    return section.items.some(item => this.isVisible(item, role));
   }
 
   isVisible(item: NavItem, role: string | null): boolean {

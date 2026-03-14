@@ -1,11 +1,18 @@
 <div class="page-header">
   <h1 class="page-title">Tickets</h1>
-  @if (isAdminOrOperario()) {
-    <a routerLink="/tickets/nuevo" class="btn btn-primary">
-      <span class="material-icon">add</span>
-      Nuevo Ticket
-    </a>
-  }
+  <div class="page-actions">
+    <app-export-button
+      title="Tickets"
+      filename="tickets"
+      [columns]="exportColumns"
+      [data]="tickets()" />
+    @if (isAdminOrOperario()) {
+      <a routerLink="/tickets/nuevo" class="btn btn-primary">
+        <span class="material-icon">add</span>
+        Nuevo Ticket
+      </a>
+    }
+  </div>
 </div>
 
 <!-- Filtros -->
@@ -52,7 +59,7 @@
 
     @if (isAdminOrOperario()) {
       <div class="filter-group">
-        <label for="filtroTecnico">Técnico</label>
+        <label for="filtroTecnico">Tecnico</label>
         <select
           id="filtroTecnico"
           [ngModel]="filtroTecnicoId()"
@@ -70,7 +77,7 @@
       <input
         id="filtroBusqueda"
         type="text"
-        placeholder="Título, descripción..."
+        placeholder="Titulo, descripcion..."
         [value]="filtroBusqueda()"
         (input)="onBusquedaInput($any($event.target).value)" />
     </div>
@@ -100,15 +107,18 @@
     (action)="router.navigate(['/tickets/nuevo'])" />
 } @else {
   <div class="table-container">
+    <div class="table-info">
+      <span>{{ totalElements }} registro{{ totalElements !== 1 ? 's' : '' }}</span>
+    </div>
     <table class="data-table">
       <thead>
         <tr>
           <th class="col-id">N°</th>
-          <th class="col-titulo">Título</th>
+          <th class="col-titulo">Titulo</th>
           <th class="col-estado">Estado</th>
           <th class="col-prioridad">Prioridad</th>
           <th class="col-juzgado">Juzgado</th>
-          <th class="col-tecnico">Técnico</th>
+          <th class="col-tecnico">Tecnico</th>
           <th class="col-fecha">Fecha</th>
           <th class="col-acciones">Acciones</th>
         </tr>
@@ -128,6 +138,16 @@
             <td class="col-tecnico">{{ ticket.tecnicoNombreCompleto || '—' }}</td>
             <td class="col-fecha">{{ ticket.fechaCreacion | date:'dd/MM/yyyy' }}</td>
             <td class="col-acciones" (click)="$event.stopPropagation()">
+              @if (isAdminOrOperario() && ticket.estado !== 'CERRADO') {
+                <div class="acciones-group">
+                  <button
+                    class="btn-icon"
+                    [title]="ticket.tecnicoId ? 'Reasignar tecnico' : 'Asignar tecnico'"
+                    (click)="asignarTecnico(ticket)">
+                    <span class="material-icon">person_add</span>
+                  </button>
+                </div>
+              }
               @if (isAdminOrOperario() && ticket.estado === 'SOLICITADO') {
                 <div class="acciones-group">
                   <button class="btn-icon" title="Editar" (click)="editarTicket(ticket.id)">
@@ -141,4 +161,22 @@
       </tbody>
     </table>
   </div>
+
+  @if (totalPages > 1) {
+    <div class="pagination-container">
+      <div class="pagination-info">
+        Mostrando {{ currentPage * pageSize + 1 }}–{{ Math.min((currentPage + 1) * pageSize, totalElements) }}
+        de {{ totalElements }} registros
+      </div>
+      <div class="pagination-controls">
+        <button class="btn-page" (click)="irAPagina(0)" [disabled]="currentPage === 0" title="Primera">«</button>
+        <button class="btn-page" (click)="irAPagina(currentPage - 1)" [disabled]="currentPage === 0" title="Anterior">‹</button>
+        <span class="pagination-current">Pagina {{ currentPage + 1 }} de {{ totalPages }}</span>
+        <button class="btn-page" (click)="irAPagina(currentPage + 1)" [disabled]="currentPage === totalPages - 1" title="Siguiente">›</button>
+        <button class="btn-page" (click)="irAPagina(totalPages - 1)" [disabled]="currentPage === totalPages - 1" title="Ultima">»</button>
+      </div>
+    </div>
+  }
 }
+
+<app-ticket-asignar-dialog />

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApiResponse, HardwareRequest, HardwareResponse } from '../models';
+import { ApiResponse, PaginatedResponse, HardwareRequest, HardwareResponse } from '../models';
 
 export interface HardwareFiltros {
   juzgadoId?: number;
@@ -15,16 +15,26 @@ export class HardwareService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/hardware`;
 
-  listar(filtros?: HardwareFiltros): Observable<HardwareResponse[]> {
-    let params = new HttpParams();
+  listar(filtros?: HardwareFiltros, page = 0, size = 20, sort = 'fechaAlta,desc'): Observable<PaginatedResponse<HardwareResponse>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', sort);
+
     if (filtros) {
       if (filtros.juzgadoId) params = params.set('juzgadoId', filtros.juzgadoId.toString());
       if (filtros.clase) params = params.set('clase', filtros.clase);
       if (filtros.q) params = params.set('q', filtros.q);
     }
     return this.http
-      .get<ApiResponse<HardwareResponse[]>>(this.baseUrl, { params })
+      .get<ApiResponse<PaginatedResponse<HardwareResponse>>>(this.baseUrl, { params })
       .pipe(map(r => r.data));
+  }
+
+  listarTodos(filtros?: HardwareFiltros, sort = 'fechaAlta,desc', size = 1000): Observable<HardwareResponse[]> {
+    return this.listar(filtros, 0, size, sort).pipe(
+      map(pagina => pagina.content)
+    );
   }
 
   obtenerPorId(id: number): Observable<HardwareResponse> {

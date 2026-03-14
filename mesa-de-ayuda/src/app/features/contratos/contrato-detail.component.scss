@@ -1,0 +1,247 @@
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--border-radius);
+  color: var(--gray-500);
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: var(--gray-100);
+    color: var(--gray-700);
+    text-decoration: none;
+  }
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+// Estado badges
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.estado-activo {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.estado-proximo {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+.estado-vencido {
+  background: var(--error-light);
+  color: var(--error);
+}
+
+// Cards
+.detail-grid {
+  margin-bottom: 1rem;
+}
+
+.detail-card {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.info-full {
+  grid-column: 1 / -1;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.info-value {
+  font-size: 0.875rem;
+  color: var(--gray-800);
+}
+
+.dias-tag {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 10px;
+  margin-left: 0.5rem;
+
+  &.activo {
+    background: var(--success-light);
+    color: var(--success);
+  }
+
+  &.proximo {
+    background: var(--warning-light);
+    color: var(--warning);
+  }
+}
+
+// Mini tables
+.mini-table-responsive {
+  overflow-x: auto;
+}
+
+.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th, td {
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    font-size: 0.8125rem;
+  }
+
+  th {
+    font-weight: 600;
+    color: var(--gray-600);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--gray-100);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &.clickable-row {
+      cursor: pointer;
+
+      &:hover {
+        background: var(--primary-50);
+      }
+    }
+  }
+}
+
+.td-bold {
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.empty-text {
+  font-size: 0.875rem;
+  color: var(--gray-400);
+  text-align: center;
+  padding: 1rem;
+}
+
+// Buttons
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.btn-secondary {
+  background: var(--gray-100);
+  color: var(--gray-700);
+
+  &:hover {
+    background: var(--gray-200);
+    text-decoration: none;
+  }
+}
+
+.btn-success {
+  background: var(--success);
+  color: #fff;
+
+  &:hover {
+    filter: brightness(0.9);
+  }
+}
+
+.btn-danger-outline {
+  background: none;
+  border: 1px solid var(--error);
+  color: var(--error);
+
+  &:hover {
+    background: var(--error-light);
+  }
+}
+
+.material-icon {
+  font-family: 'Material Symbols Outlined';
+  font-size: 1.25rem;
+}

@@ -1,0 +1,86 @@
+<div class="page-header">
+  <h1 class="page-title">{{ isEditing ? 'Editar Juzgado' : 'Nuevo Juzgado' }}</h1>
+</div>
+
+@if (loading()) {
+  <app-loading-spinner message="Cargando juzgado..." />
+} @else {
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="nombre" class="form-label">Nombre <span class="required">*</span></label>
+        <input id="nombre" formControlName="nombre" class="form-control"
+          [class.invalid]="isInvalid('nombre')" maxlength="150"
+          placeholder="Ej: Juzgado Civil N° 1">
+        @if (isInvalid('nombre')) {
+          <span class="form-error">El nombre es obligatorio.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="fuero" class="form-label">Fuero <span class="required">*</span></label>
+        <select id="fuero" formControlName="fuero" class="form-control"
+          [class.invalid]="isInvalid('fuero')">
+          <option value="">— Seleccionar fuero —</option>
+          @for (f of fueros; track f) {
+            <option [value]="f">{{ f }}</option>
+          }
+        </select>
+        @if (isInvalid('fuero')) {
+          <span class="form-error">El fuero es obligatorio.</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="ciudad" class="form-label">Ciudad <span class="required">*</span></label>
+        <input id="ciudad" formControlName="ciudad" class="form-control"
+          [class.invalid]="isInvalid('ciudad')" maxlength="100">
+        @if (isInvalid('ciudad')) {
+          <span class="form-error">La ciudad es obligatoria.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="edificio" class="form-label">Edificio</label>
+        <input id="edificio" formControlName="edificio" class="form-control" maxlength="150"
+          placeholder="Opcional">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="circunscripcionId" class="form-label">Circunscripcion <span class="required">*</span></label>
+        <div class="select-with-action">
+          <select id="circunscripcionId" formControlName="circunscripcionId" class="form-control"
+            [class.invalid]="isInvalid('circunscripcionId')">
+            <option value="">— Seleccionar —</option>
+            @for (c of circunscripciones(); track c.id) {
+              <option [value]="c.id">{{ c.nombre }} ({{ c.distritoJudicial }})</option>
+            }
+          </select>
+          <a routerLink="/juzgados/circunscripciones/nueva" class="btn-icon-sm" title="Crear circunscripcion">
+            <span class="material-icon">add</span>
+          </a>
+        </div>
+        @if (isInvalid('circunscripcionId')) {
+          <span class="form-error">La circunscripcion es obligatoria.</span>
+        }
+      </div>
+      <div class="form-group">
+        <!-- spacer -->
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a routerLink="/juzgados" class="btn btn-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary" [disabled]="form.invalid || form.pristine || submitting()">
+        @if (submitting()) {
+          <span class="spinner-btn"></span>
+        }
+        {{ isEditing ? 'Guardar Cambios' : 'Registrar Juzgado' }}
+      </button>
+    </div>
+  </form>
+}

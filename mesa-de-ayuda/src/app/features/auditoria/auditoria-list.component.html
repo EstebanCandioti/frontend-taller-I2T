@@ -1,0 +1,237 @@
+<div class="page-header">
+  <h1 class="page-title">Auditoria</h1>
+  <div class="page-actions">
+    <app-export-button
+      title="Auditoria"
+      filename="auditoria"
+      [columns]="exportColumns"
+      [data]="registros()" />
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="filters-card">
+  <div class="filters-row">
+    <div class="filter-group">
+      <label class="filter-label">Entidad</label>
+      <select [(ngModel)]="filtroEntidad" (ngModelChange)="onFiltroChange()" class="filter-control">
+        <option value="">Todas</option>
+        @for (e of entidades; track e) {
+          <option [value]="e">{{ e }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Accion</label>
+      <select [(ngModel)]="filtroAccion" (ngModelChange)="onFiltroChange()" class="filter-control">
+        <option value="">Todas</option>
+        @for (a of acciones; track a) {
+          <option [value]="a">{{ getAccionLabel(a) }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Desde</label>
+      <input type="date" [(ngModel)]="filtroDesde" (ngModelChange)="onFiltroChange()" class="filter-control">
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Hasta</label>
+      <input type="date" [(ngModel)]="filtroHasta" (ngModelChange)="onFiltroChange()" class="filter-control">
+    </div>
+
+    @if (hayFiltrosActivos) {
+      <button class="btn btn-ghost filter-clear" (click)="limpiarFiltros()">
+        <span class="material-icon">clear</span>
+        Limpiar
+      </button>
+    }
+  </div>
+</div>
+
+<!-- Contenido -->
+@if (loading()) {
+  <app-loading-spinner message="Cargando registros de auditoria..." />
+} @else if (registros().length === 0) {
+  <app-empty-state
+    icon="history"
+    title="No se encontraron registros"
+    [message]="hayFiltrosActivos ? 'No hay resultados con los filtros aplicados.' : 'Aun no hay registros de auditoria.'"
+    [actionLabel]="hayFiltrosActivos ? 'Limpiar filtros' : ''"
+    (action)="limpiarFiltros()" />
+} @else {
+  <div class="table-card">
+    <div class="table-info">
+      <span>{{ totalElements }} registro{{ totalElements !== 1 ? 's' : '' }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Usuario</th>
+            <th>Entidad</th>
+            <th>Accion</th>
+            <th>ID Entidad Afectada</th>
+            <th class="th-actions">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of registros(); track r.id) {
+            <tr>
+              <td>{{ r.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="td-bold">{{ r.usuarioNombreCompleto || '—' }}</td>
+              <td>{{ r.entidad }}</td>
+              <td>
+                <span class="accion-badge" [class]="getAccionClass(r.accion)">
+                  {{ getAccionLabel(r.accion) }}
+                </span>
+              </td>
+              <td>
+                @if (getEntidadRuta(r.entidad)) {
+                  <button class="link-btn" (click)="navegarAEntidad(r)" title="Ir a la entidad">
+                    #{{ r.registroId }}
+                  </button>
+                } @else {
+                  #{{ r.registroId }}
+                }
+              </td>
+              <td class="td-actions">
+                <button class="btn-icon" title="Ver detalle" (click)="verDetalle(r)">
+                  <span class="material-icon">visibility</span>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  @if (totalPages > 1) {
+    <div class="pagination-container">
+      <div class="pagination-info">
+        Mostrando {{ currentPage * pageSize + 1 }}–{{ Math.min((currentPage + 1) * pageSize, totalElements) }}
+        de {{ totalElements }} registros
+      </div>
+      <div class="pagination-controls">
+        <button class="btn-page" (click)="irAPagina(0)" [disabled]="currentPage === 0" title="Primera">«</button>
+        <button class="btn-page" (click)="irAPagina(currentPage - 1)" [disabled]="currentPage === 0" title="Anterior">‹</button>
+        <span class="pagination-current">Pagina {{ currentPage + 1 }} de {{ totalPages }}</span>
+        <button class="btn-page" (click)="irAPagina(currentPage + 1)" [disabled]="currentPage === totalPages - 1" title="Siguiente">›</button>
+        <button class="btn-page" (click)="irAPagina(totalPages - 1)" [disabled]="currentPage === totalPages - 1" title="Ultima">»</button>
+      </div>
+    </div>
+  }
+}
+
+<!-- Modal Detalle -->
+@if (detalleVisible() && detalleItem()) {
+  <div class="modal-overlay" (click)="onOverlayClick($event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Detalle de Auditoria</h2>
+        <button class="btn-close" (click)="cerrarDetalle()">
+          <span class="material-icon">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-meta">
+          <div class="meta-item">
+            <span class="meta-label">Fecha:</span>
+            <span>{{ detalleItem()!.fecha | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Usuario:</span>
+            <span>{{ detalleItem()!.usuarioNombreCompleto || '—' }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Entidad:</span>
+            <span>{{ detalleItem()!.entidad }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Accion:</span>
+            <span class="accion-badge" [class]="getAccionClass(detalleItem()!.accion)">
+              {{ getAccionLabel(detalleItem()!.accion) }}
+            </span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">ID Entidad Afectada:</span>
+            <span>#{{ detalleItem()!.registroId }}</span>
+          </div>
+        </div>
+
+        @if (detalleItem()!.accion === 'UPDATE') {
+          <!-- Diff view para UPDATE -->
+          @let anterior = parseJson(detalleItem()!.valorAnterior);
+          @let nuevo = parseJson(detalleItem()!.valorNuevo);
+          @let keys = getDiffKeys(anterior, nuevo);
+
+          @if (keys.length > 0) {
+            <div class="diff-section">
+              <h3 class="section-title">Cambios</h3>
+              <div class="diff-table-wrapper">
+                <table class="diff-table">
+                  <thead>
+                    <tr>
+                      <th>Campo</th>
+                      <th>Valor Anterior</th>
+                      <th>Valor Nuevo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (key of keys; track key) {
+                      <tr [class.changed]="hasChanged(key, anterior, nuevo)">
+                        <td class="diff-key">{{ key }}</td>
+                        <td class="diff-value">{{ anterior ? (anterior[key] ?? '—') : '—' }}</td>
+                        <td class="diff-value">{{ nuevo ? (nuevo[key] ?? '—') : '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          } @else {
+            <div class="json-section">
+              @if (detalleItem()!.valorAnterior) {
+                <div class="json-block">
+                  <h3 class="section-title">Valor Anterior</h3>
+                  <pre class="json-pre">{{ formatJson(parseJson(detalleItem()!.valorAnterior)) }}</pre>
+                </div>
+              }
+              @if (detalleItem()!.valorNuevo) {
+                <div class="json-block">
+                  <h3 class="section-title">Valor Nuevo</h3>
+                  <pre class="json-pre">{{ formatJson(parseJson(detalleItem()!.valorNuevo)) }}</pre>
+                </div>
+              }
+            </div>
+          }
+        } @else {
+          <!-- Vista simple para CREATE/DELETE/ASSIGN/CLOSE -->
+          @if (detalleItem()!.valorNuevo || detalleItem()!.valorAnterior) {
+            <div class="json-section">
+              @if (detalleItem()!.valorAnterior) {
+                <div class="json-block">
+                  <h3 class="section-title">Valor Anterior</h3>
+                  <pre class="json-pre">{{ formatJson(parseJson(detalleItem()!.valorAnterior)) }}</pre>
+                </div>
+              }
+              @if (detalleItem()!.valorNuevo) {
+                <div class="json-block">
+                  <h3 class="section-title">Valor Nuevo</h3>
+                  <pre class="json-pre">{{ formatJson(parseJson(detalleItem()!.valorNuevo)) }}</pre>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="no-data">No hay datos adicionales para este registro.</p>
+          }
+        }
+      </div>
+    </div>
+  </div>
+}

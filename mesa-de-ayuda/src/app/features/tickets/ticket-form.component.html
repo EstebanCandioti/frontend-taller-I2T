@@ -7,10 +7,10 @@
 } @else {
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="ticket-form" novalidate>
     <div class="form-card">
-      <!-- Título -->
+      <!-- Titulo -->
       <div class="form-group">
         <label for="titulo" class="form-label">
-          Título <span class="required">*</span>
+          Titulo <span class="required">*</span>
         </label>
         <input
           id="titulo"
@@ -18,24 +18,24 @@
           formControlName="titulo"
           class="form-control"
           [class.invalid]="hasError('titulo', 'required') || hasError('titulo', 'maxlength')"
-          placeholder="Descripción breve del problema" />
+          placeholder="Descripcion breve del problema" />
         <div class="form-hint-row">
           <span class="char-counter" [class.warn]="tituloLength > 180">
             {{ tituloLength }}/200
           </span>
         </div>
         @if (hasError('titulo', 'required')) {
-          <span class="form-error">El título es obligatorio.</span>
+          <span class="form-error">El titulo es obligatorio.</span>
         }
         @if (hasError('titulo', 'maxlength')) {
-          <span class="form-error">Máximo 200 caracteres.</span>
+          <span class="form-error">Maximo 200 caracteres.</span>
         }
       </div>
 
-      <!-- Descripción -->
+      <!-- Descripcion -->
       <div class="form-group">
         <label for="descripcion" class="form-label">
-          Descripción <span class="required">*</span>
+          Descripcion <span class="required">*</span>
         </label>
         <textarea
           id="descripcion"
@@ -45,7 +45,7 @@
           rows="4"
           placeholder="Detalle del problema o solicitud"></textarea>
         @if (hasError('descripcion', 'required')) {
-          <span class="form-error">La descripción es obligatoria.</span>
+          <span class="form-error">La descripcion es obligatoria.</span>
         }
       </div>
 
@@ -55,7 +55,7 @@
           <label for="prioridad" class="form-label">Prioridad</label>
           <select id="prioridad" formControlName="prioridad" class="form-control">
             @for (p of prioridades; track p) {
-              <option [value]="p">{{ p === 'CRITICA' ? 'Crítica' : (p | lowercase) }}</option>
+              <option [value]="p">{{ p === 'CRITICA' ? 'Critica' : (p | lowercase) }}</option>
             }
           </select>
         </div>
@@ -117,12 +117,12 @@
             [class.invalid]="hasError('referenteNombre', 'maxlength')"
             placeholder="Persona de contacto" />
           @if (hasError('referenteNombre', 'maxlength')) {
-            <span class="form-error">Máximo 150 caracteres.</span>
+            <span class="form-error">Maximo 150 caracteres.</span>
           }
         </div>
 
         <div class="form-group">
-          <label for="referenteTelefono" class="form-label">Teléfono del referente</label>
+          <label for="referenteTelefono" class="form-label">Telefono del referente</label>
           <input
             id="referenteTelefono"
             type="text"
@@ -131,7 +131,7 @@
             [class.invalid]="hasError('referenteTelefono', 'maxlength')"
             placeholder="Ej: 3804-123456" />
           @if (hasError('referenteTelefono', 'maxlength')) {
-            <span class="form-error">Máximo 30 caracteres.</span>
+            <span class="form-error">Maximo 30 caracteres.</span>
           }
         </div>
       </div>

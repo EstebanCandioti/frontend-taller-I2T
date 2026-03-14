@@ -6,7 +6,7 @@ export interface HasUnsavedChanges {
 
 export const unsavedChangesGuard: CanDeactivateFn<HasUnsavedChanges> = (component) => {
   if (component.hasUnsavedChanges()) {
-    return confirm('Tiene cambios sin guardar. ¿Está seguro de que desea salir?');
+    return confirm('Tiene cambios sin guardar. ¿Esta seguro de que desea salir?');
   }
   return true;
 };

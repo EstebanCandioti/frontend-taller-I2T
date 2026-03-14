@@ -1,0 +1,170 @@
+@if (loading()) {
+  <app-loading-spinner message="Cargando dashboard..." />
+} @else {
+  <div class="dashboard">
+    <div class="dashboard-header">
+      <h1>Bienvenido, {{ userName() }}</h1>
+      <p class="subtitle">Resumen general del sistema</p>
+    </div>
+
+    <!-- Tarjetas de resumen -->
+    <div class="cards-grid">
+      <div class="stat-card card--tickets" (click)="navigateTickets('activos')">
+        <div class="card-icon">
+          <span class="material-icon">confirmation_number</span>
+        </div>
+        <div class="card-body">
+          <span class="card-value">{{ ticketsActivos() }}</span>
+          <span class="card-label">Tickets Activos</span>
+        </div>
+        <span class="material-icon card-arrow">arrow_forward</span>
+      </div>
+
+      <div class="stat-card card--criticos" (click)="navigateTickets('criticos')">
+        <div class="card-icon">
+          <span class="material-icon">priority_high</span>
+        </div>
+        <div class="card-body">
+          <span class="card-value">{{ ticketsCriticos() }}</span>
+          <span class="card-label">Tickets Criticos</span>
+        </div>
+        <span class="material-icon card-arrow">arrow_forward</span>
+      </div>
+
+      <div class="stat-card card--sin-asignar" (click)="navigateTickets('sin-asignar')">
+        <div class="card-icon">
+          <span class="material-icon">person_off</span>
+        </div>
+        <div class="card-body">
+          <span class="card-value">{{ ticketsSinAsignar() }}</span>
+          <span class="card-label">Sin Asignar</span>
+        </div>
+        <span class="material-icon card-arrow">arrow_forward</span>
+      </div>
+
+      <div class="stat-card card--contratos-prox" (click)="navigateContratos('proximos')">
+        <div class="card-icon">
+          <span class="material-icon">schedule</span>
+        </div>
+        <div class="card-body">
+          <span class="card-value">{{ contratosProximos().length }}</span>
+          <span class="card-label">Contratos por Vencer</span>
+        </div>
+        <span class="material-icon card-arrow">arrow_forward</span>
+      </div>
+
+      <div class="stat-card card--contratos-venc" (click)="navigateContratos('vencidos')">
+        <div class="card-icon">
+          <span class="material-icon">event_busy</span>
+        </div>
+        <div class="card-body">
+          <span class="card-value">{{ contratosVencidos().length }}</span>
+          <span class="card-label">Contratos Vencidos</span>
+        </div>
+        <span class="material-icon card-arrow">arrow_forward</span>
+      </div>
+
+      <a class="stat-card card--hardware" routerLink="/hardware">
+        <div class="card-icon">
+          <span class="material-icon">computer</span>
+        </div>
+        <div class="card-body">
+          <span class="card-value">{{ totalHardware() }}</span>
+          <span class="card-label">Equipos Hardware</span>
+        </div>
+        <span class="material-icon card-arrow">arrow_forward</span>
+      </a>
+
+      <a class="stat-card card--software" routerLink="/software">
+        <div class="card-icon">
+          <span class="material-icon">apps</span>
+        </div>
+        <div class="card-body">
+          <span class="card-value">{{ licenciasInfo().disponibles }} / {{ licenciasInfo().total }}</span>
+          <span class="card-label">Licencias Disponibles</span>
+        </div>
+        <span class="material-icon card-arrow">arrow_forward</span>
+      </a>
+    </div>
+
+    <!-- Secciones inferiores -->
+    <div class="dashboard-bottom">
+      <!-- Tabla Carga de Tecnicos -->
+      <section class="section-panel">
+        <h2 class="section-title">
+          <span class="material-icon">engineering</span>
+          Carga de Tecnicos
+        </h2>
+        @if (tecnicosCarga().length === 0) {
+          <p class="empty-text">No hay tecnicos con tickets activos.</p>
+        } @else {
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Tecnico</th>
+                  <th class="text-center">Asignados</th>
+                  <th class="text-center">En Curso</th>
+                  <th class="text-center">Total Activos</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (tec of tecnicosCarga(); track tec.id) {
+                  <tr class="clickable-row" (click)="navigateTicketsTecnico(tec.id)">
+                    <td>{{ tec.nombre }}</td>
+                    <td class="text-center">
+                      <span class="count-badge badge-asignado">{{ tec.asignados }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="count-badge badge-en-curso">{{ tec.enCurso }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="count-badge badge-total">{{ tec.totalActivos }}</span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+
+      <!-- Ultimos Tickets -->
+      <section class="section-panel">
+        <h2 class="section-title">
+          <span class="material-icon">history</span>
+          Ultimos Tickets
+        </h2>
+        @if (ultimosTickets().length === 0) {
+          <p class="empty-text">No hay tickets registrados.</p>
+        } @else {
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>N.</th>
+                  <th>Titulo</th>
+                  <th>Estado</th>
+                  <th>Prioridad</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (t of ultimosTickets(); track t.id) {
+                  <tr class="clickable-row" [routerLink]="['/tickets', t.id]">
+                    <td class="text-muted">#{{ t.id }}</td>
+                    <td class="ticket-title-cell">{{ t.titulo }}</td>
+                    <td><app-status-badge [value]="t.estado" type="estado" /></td>
+                    <td><app-status-badge [value]="t.prioridad" type="prioridad" /></td>
+                    <td class="text-muted text-nowrap">{{ t.fechaCreacion | date:'dd/MM/yy' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <a routerLink="/tickets" class="view-all-link">Ver todos los tickets →</a>
+        }
+      </section>
+    </div>
+  </div>
+}

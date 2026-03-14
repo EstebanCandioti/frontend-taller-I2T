@@ -3,25 +3,35 @@
     @if (!collapsed()) {
       <span class="sidebar-title">Mesa de Ayuda IT</span>
     }
-    <button class="toggle-btn" (click)="toggleCollapse()" [attr.aria-label]="collapsed() ? 'Expandir menú' : 'Colapsar menú'">
+    <button class="toggle-btn" (click)="toggleCollapse()" [attr.aria-label]="collapsed() ? 'Expandir menu' : 'Colapsar menu'">
       <span class="material-icon">{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</span>
     </button>
   </div>
 
   <nav class="sidebar-nav">
-    @for (item of navItems; track item.route) {
-      @if (isVisible(item, (currentRole$ | async) ?? null)) {
-        <a
-          class="nav-item"
-          [routerLink]="item.route"
-          routerLinkActive="active"
-          [attr.title]="collapsed() ? item.label : null"
-        >
-          <span class="material-icon">{{ item.icon }}</span>
-          @if (!collapsed()) {
-            <span class="nav-label">{{ item.label }}</span>
+    @let currentRole = (currentRole$ | async) ?? null;
+
+    @for (section of navSections; track section.title) {
+      @if (hasVisibleItems(section, currentRole)) {
+        @if (!collapsed()) {
+          <div class="nav-section-title">{{ section.title }}</div>
+        }
+
+        @for (item of section.items; track item.route) {
+          @if (isVisible(item, currentRole)) {
+            <a
+              class="nav-item"
+              [routerLink]="item.route"
+              routerLinkActive="active"
+              [attr.title]="collapsed() ? item.label : null"
+            >
+              <span class="material-icon">{{ item.icon }}</span>
+              @if (!collapsed()) {
+                <span class="nav-label">{{ item.label }}</span>
+              }
+            </a>
           }
-        </a>
+        }
       }
     }
   </nav>

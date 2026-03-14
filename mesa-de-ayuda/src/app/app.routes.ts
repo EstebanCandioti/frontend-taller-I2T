@@ -15,7 +15,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+        loadComponent: () => import('./features/dashboard/dashboard-router.component').then(m => m.DashboardRouterComponent)
       },
       // Tickets
       {
@@ -70,6 +70,75 @@ export const routes: Routes = [
         path: 'software/:id/editar',
         canActivate: [roleGuard('Admin', 'Operario')],
         loadComponent: () => import('./features/software/software-form.component').then(m => m.SoftwareFormComponent)
+      },
+// Contratos (Admin + Operario)
+      {
+        path: 'contratos',
+        canActivate: [roleGuard('Admin', 'Operario')],
+        loadComponent: () => import('./features/contratos/contrato-list.component').then(m => m.ContratoListComponent)
+      },
+      {
+        path: 'contratos/nuevo',
+        canActivate: [roleGuard('Admin', 'Operario')],
+        loadComponent: () => import('./features/contratos/contrato-form.component').then(m => m.ContratoFormComponent)
+      },
+      {
+        path: 'contratos/:id',
+        canActivate: [roleGuard('Admin', 'Operario')],
+        loadComponent: () => import('./features/contratos/contrato-detail.component').then(m => m.ContratoDetailComponent)
+      },
+      {
+        path: 'contratos/:id/editar',
+        canActivate: [roleGuard('Admin', 'Operario')],
+        loadComponent: () => import('./features/contratos/contrato-form.component').then(m => m.ContratoFormComponent)
+      },
+// Juzgados (Admin + Operario)
+      {
+        path: 'juzgados',
+        canActivate: [roleGuard('Admin', 'Operario')],
+        loadComponent: () => import('./features/juzgados/juzgado-list.component').then(m => m.JuzgadoListComponent)
+      },
+      {
+        path: 'juzgados/nuevo',
+        canActivate: [roleGuard('Admin', 'Operario')],
+        loadComponent: () => import('./features/juzgados/juzgado-form.component').then(m => m.JuzgadoFormComponent)
+      },
+      {
+        path: 'juzgados/:id/editar',
+        canActivate: [roleGuard('Admin', 'Operario')],
+        loadComponent: () => import('./features/juzgados/juzgado-form.component').then(m => m.JuzgadoFormComponent)
+      },
+      {
+        path: 'juzgados/circunscripciones/nueva',
+        canActivate: [roleGuard('Admin', 'Operario')],
+        loadComponent: () => import('./features/juzgados/circunscripcion-form.component').then(m => m.CircunscripcionFormComponent)
+      },
+      {
+        path: 'juzgados/circunscripciones/:id/editar',
+        canActivate: [roleGuard('Admin', 'Operario')],
+        loadComponent: () => import('./features/juzgados/circunscripcion-form.component').then(m => m.CircunscripcionFormComponent)
+      },
+// Usuarios (Solo Admin)
+      {
+        path: 'usuarios',
+        canActivate: [roleGuard('Admin')],
+        loadComponent: () => import('./features/usuarios/usuario-list.component').then(m => m.UsuarioListComponent)
+      },
+      {
+        path: 'usuarios/nuevo',
+        canActivate: [roleGuard('Admin')],
+        loadComponent: () => import('./features/usuarios/usuario-form.component').then(m => m.UsuarioFormComponent)
+      },
+      {
+        path: 'usuarios/:id/editar',
+        canActivate: [roleGuard('Admin')],
+        loadComponent: () => import('./features/usuarios/usuario-form.component').then(m => m.UsuarioFormComponent)
+      },
+// Auditoria (Solo Admin)
+      {
+        path: 'auditoria',
+        canActivate: [roleGuard('Admin')],
+        loadComponent: () => import('./features/auditoria/auditoria-list.component').then(m => m.AuditoriaListComponent)
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ]

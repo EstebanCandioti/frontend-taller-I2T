@@ -54,11 +54,11 @@ export class LoginComponent implements OnInit {
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
         if (err.status === 401) {
-          this.errorMessage.set('Email o contraseña incorrectos.');
+          this.errorMessage.set('Email o contrasena incorrectos.');
         } else if (err.status === 0) {
           this.errorMessage.set('No se puede conectar con el servidor.');
         } else {
-          this.errorMessage.set(err.error?.message || 'Error al iniciar sesión.');
+          this.errorMessage.set(err.error?.message || 'Error al iniciar sesion.');
         }
       }
     });

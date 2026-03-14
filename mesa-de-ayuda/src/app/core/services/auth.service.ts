@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse, LoginRequest, LoginResponse, CurrentUser, Rol } from '../models';
+import { WebSocketService } from './websocket.service';
+import { NotificationService } from './notification.service';
 
 const USER_KEY = 'mesa_ayuda_user';
 
@@ -11,6 +13,8 @@ const USER_KEY = 'mesa_ayuda_user';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly ws = inject(WebSocketService);
+  private readonly notificationService = inject(NotificationService);
 
   private readonly currentUserSubject = new BehaviorSubject<CurrentUser | null>(
     this.loadUserFromStorage()
@@ -19,6 +23,8 @@ export class AuthService {
   readonly currentUser$ = this.currentUserSubject.asObservable();
   readonly isAuthenticated$ = this.currentUser$.pipe(map(u => u !== null && !this.isTokenExpired()));
   readonly currentRole$ = this.currentUser$.pipe(map(u => u?.rol ?? null));
+
+  private wsInitialized = false;
 
   get currentUser(): CurrentUser | null {
     return this.currentUserSubject.value;
@@ -43,12 +49,16 @@ export class AuthService {
               token: loginData.token
             };
             this.setUser(user);
+            this.connectWebSocket(user.token);
           }
         })
       );
   }
 
   logout(): void {
+    this.ws.disconnect();
+    this.notificationService.clear();
+    this.wsInitialized = false;
     sessionStorage.removeItem(USER_KEY);
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
@@ -70,6 +80,22 @@ export class AuthService {
     } catch {
       return true;
     }
+  }
+
+  /** Llamar desde app init o main-layout para reconectar si ya hay sesion */
+  initWebSocketIfNeeded(): void {
+    if (this.wsInitialized) return;
+    const user = this.currentUser;
+    if (user && !this.isTokenExpired()) {
+      this.connectWebSocket(user.token);
+    }
+  }
+
+  private connectWebSocket(token: string): void {
+    if (this.wsInitialized) return;
+    this.wsInitialized = true;
+    this.notificationService.init();
+    this.ws.connect(token);
   }
 
   private setUser(user: CurrentUser): void {

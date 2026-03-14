@@ -1,0 +1,148 @@
+@if (loading()) {
+  <app-loading-spinner message="Cargando contrato..." />
+} @else if (contrato(); as c) {
+  <div class="page-header">
+    <div class="header-left">
+      <a routerLink="/contratos" class="btn-back">
+        <span class="material-icon">arrow_back</span>
+      </a>
+      <div>
+        <h1 class="page-title">{{ c.nombre }}</h1>
+        <p class="page-subtitle">{{ c.proveedor }}</p>
+      </div>
+      <span class="estado-badge" [class]="'estado-' + estadoClass(c)">
+        {{ estadoContrato(c) }}
+      </span>
+    </div>
+    <div class="header-actions">
+      @if (c.vencido || c.proximoAVencer) {
+        <button class="btn btn-success" (click)="abrirRenovar()">
+          <span class="material-icon">autorenew</span>
+          Renovar
+        </button>
+      }
+      <a [routerLink]="['/contratos', c.id, 'editar']" class="btn btn-secondary">
+        <span class="material-icon">edit</span>
+        Editar
+      </a>
+      <button class="btn btn-danger-outline" (click)="onEliminar()">
+        <span class="material-icon">delete</span>
+        Eliminar
+      </button>
+    </div>
+  </div>
+
+  <!-- Info principal -->
+  <div class="detail-grid">
+    <div class="detail-card">
+      <h3 class="card-title">Datos del Contrato</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Fecha Inicio</span>
+          <span class="info-value">{{ c.fechaInicio | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Fecha Fin</span>
+          <span class="info-value">
+            {{ c.fechaFin | date:'dd/MM/yyyy' }}
+            @if (!c.vencido) {
+              <span class="dias-tag" [class]="estadoClass(c)">{{ diasRestantes(c) }} dias restantes</span>
+            }
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Cobertura</span>
+          <span class="info-value">{{ c.cobertura || '—' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Monto</span>
+          <span class="info-value">{{ c.monto ? (c.monto | currency:'ARS':'symbol':'1.0-2') : '—' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Alerta de vencimiento</span>
+          <span class="info-value">{{ c.diasAlertaVencimiento }} dias antes</span>
+        </div>
+        @if (c.observaciones) {
+          <div class="info-item info-full">
+            <span class="info-label">Observaciones</span>
+            <span class="info-value">{{ c.observaciones }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Hardware asociado -->
+  <div class="detail-card">
+    <h3 class="card-title">
+      <span class="material-icon">computer</span>
+      Hardware Asociado ({{ c.hardware.length }})
+    </h3>
+    @if (c.hardware.length > 0) {
+      <div class="mini-table-responsive">
+        <table class="mini-table">
+          <thead>
+            <tr>
+              <th>Nro. Inventario</th>
+              <th>Clase</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (h of c.hardware; track h.id) {
+              <tr class="clickable-row" (click)="router.navigate(['/hardware', h.id])">
+                <td class="td-bold">{{ h.nroInventario }}</td>
+                <td>{{ h.clase }}</td>
+                <td>{{ h.marca }}</td>
+                <td>{{ h.modelo }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p class="empty-text">No hay hardware vinculado a este contrato.</p>
+    }
+  </div>
+
+  <!-- Software asociado -->
+  <div class="detail-card">
+    <h3 class="card-title">
+      <span class="material-icon">apps</span>
+      Software Asociado ({{ c.software.length }})
+    </h3>
+    @if (c.software.length > 0) {
+      <div class="mini-table-responsive">
+        <table class="mini-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Proveedor</th>
+              <th>Licencias</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of c.software; track s.id) {
+              <tr>
+                <td class="td-bold">{{ s.nombre }}</td>
+                <td>{{ s.proveedor }}</td>
+                <td>{{ s.cantidadLicencias }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p class="empty-text">No hay software vinculado a este contrato.</p>
+    }
+  </div>
+
+  <!-- Renovar Dialog -->
+  @if (showRenovar()) {
+    <app-renovar-dialog
+      [contrato]="c"
+      (renovado)="onRenovado()"
+      (cerrado)="onRenovarCerrado()" />
+  }
+}

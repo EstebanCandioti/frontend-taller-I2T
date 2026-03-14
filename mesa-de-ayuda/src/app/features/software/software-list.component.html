@@ -1,6 +1,11 @@
 <div class="page-header">
   <h1 class="page-title">Software</h1>
   <div class="page-actions">
+    <app-export-button
+      title="Software"
+      filename="software"
+      [columns]="exportColumns"
+      [data]="software()" />
     <button class="btn btn-primary" routerLink="/software/nuevo">
       <span class="material-icon">add</span>
       Nuevo Software
@@ -36,14 +41,14 @@
 } @else if (software().length === 0) {
   <app-empty-state
     icon="apps"
-    title="No se encontró software"
-    [message]="hayFiltrosActivos ? 'No hay resultados con los filtros aplicados.' : 'Aún no se registró software en el sistema.'"
+    title="No se encontro software"
+    [message]="hayFiltrosActivos ? 'No hay resultados con los filtros aplicados.' : 'Aun no se registro software en el sistema.'"
     [actionLabel]="hayFiltrosActivos ? 'Limpiar filtros' : 'Registrar software'"
     (action)="hayFiltrosActivos ? limpiarFiltros() : router.navigate(['/software/nuevo'])" />
 } @else {
   <div class="table-card">
     <div class="table-info">
-      <span>{{ software().length }} registro{{ software().length !== 1 ? 's' : '' }}</span>
+      <span>{{ totalElements }} registro{{ totalElements !== 1 ? 's' : '' }}</span>
     </div>
     <div class="table-responsive">
       <table class="data-table">
@@ -56,6 +61,7 @@
             <th>Vencimiento</th>
             <th>Contrato</th>
             <th>Juzgado</th>
+            <th>Hardware</th>
             <th class="th-actions">Acciones</th>
           </tr>
         </thead>
@@ -80,7 +86,30 @@
               </td>
               <td>{{ sw.fechaVencimiento ? (sw.fechaVencimiento | date:'dd/MM/yyyy') : '—' }}</td>
               <td>{{ sw.contratoNombre }}</td>
-              <td>{{ sw.juzgadoNombre || '—' }}</td>
+              <td>
+                @if (sw.juzgados && sw.juzgados.length > 0) {
+                  <span [title]="juzgadosTooltip(sw)">
+                    {{ sw.juzgados[0].nombre }}
+                    @if (sw.juzgados.length > 1) {
+                      <span class="badge-more">+{{ sw.juzgados.length - 1 }} mas</span>
+                    }
+                  </span>
+                } @else {
+                  —
+                }
+              </td>
+              <td>
+                @if (sw.hardware && sw.hardware.length > 0) {
+                  <span [title]="hardwareTooltip(sw)">
+                    {{ sw.hardware[0].nroInventario }}
+                    @if (sw.hardware.length > 1) {
+                      <span class="badge-more">+{{ sw.hardware.length - 1 }} mas</span>
+                    }
+                  </span>
+                } @else {
+                  —
+                }
+              </td>
               <td class="td-actions" (click)="$event.stopPropagation()">
                 <button class="btn-icon" title="Editar" (click)="router.navigate(['/software', sw.id, 'editar'])">
                   <span class="material-icon">edit</span>
@@ -95,4 +124,20 @@
       </table>
     </div>
   </div>
+
+  @if (totalPages > 1) {
+    <div class="pagination-container">
+      <div class="pagination-info">
+        Mostrando {{ currentPage * pageSize + 1 }}–{{ Math.min((currentPage + 1) * pageSize, totalElements) }}
+        de {{ totalElements }} registros
+      </div>
+      <div class="pagination-controls">
+        <button class="btn-page" (click)="irAPagina(0)" [disabled]="currentPage === 0" title="Primera">«</button>
+        <button class="btn-page" (click)="irAPagina(currentPage - 1)" [disabled]="currentPage === 0" title="Anterior">‹</button>
+        <span class="pagination-current">Pagina {{ currentPage + 1 }} de {{ totalPages }}</span>
+        <button class="btn-page" (click)="irAPagina(currentPage + 1)" [disabled]="currentPage === totalPages - 1" title="Siguiente">›</button>
+        <button class="btn-page" (click)="irAPagina(totalPages - 1)" [disabled]="currentPage === totalPages - 1" title="Ultima">»</button>
+      </div>
+    </div>
+  }
 }

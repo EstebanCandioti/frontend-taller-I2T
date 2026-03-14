@@ -1,0 +1,126 @@
+<div class="page-header">
+  <h1 class="page-title">Usuarios</h1>
+  <div class="page-actions">
+    <app-export-button
+      title="Usuarios"
+      filename="usuarios"
+      [columns]="exportColumns"
+      [data]="filteredUsuarios()" />
+    <button class="btn btn-primary" routerLink="/usuarios/nuevo">
+      <span class="material-icon">person_add</span>
+      Nuevo Usuario
+    </button>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="filters-card">
+  <div class="filters-row">
+    <div class="filter-group">
+      <label class="filter-label">Rol</label>
+      <select [(ngModel)]="filtroRol" (ngModelChange)="onFiltroChange()" class="filter-control">
+        <option value="">Todos</option>
+        @for (r of roles; track r) {
+          <option [value]="r">{{ r }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Estado</label>
+      <select [(ngModel)]="filtroEstado" (ngModelChange)="onFiltroChange()" class="filter-control">
+        <option value="">Todos</option>
+        @for (e of estados; track e.value) {
+          <option [value]="e.value">{{ e.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group filter-search">
+      <label class="filter-label">Buscar</label>
+      <input
+        type="text"
+        [(ngModel)]="filtroBusqueda"
+        (input)="onSearchInput()"
+        class="filter-control"
+        placeholder="Nombre, email, telefono...">
+    </div>
+
+    @if (hayFiltrosActivos) {
+      <button class="btn btn-ghost filter-clear" (click)="limpiarFiltros()">
+        <span class="material-icon">clear</span>
+        Limpiar
+      </button>
+    }
+  </div>
+</div>
+
+<!-- Contenido -->
+@if (loading()) {
+  <app-loading-spinner message="Cargando usuarios..." />
+} @else if (filteredUsuarios().length === 0) {
+  <app-empty-state
+    icon="people"
+    title="No se encontraron usuarios"
+    [message]="hayFiltrosActivos ? 'No hay resultados con los filtros aplicados.' : 'Aun no se registraron usuarios en el sistema.'"
+    [actionLabel]="hayFiltrosActivos ? 'Limpiar filtros' : 'Crear usuario'"
+    (action)="hayFiltrosActivos ? limpiarFiltros() : router.navigate(['/usuarios/nuevo'])" />
+} @else {
+  <div class="table-card">
+    <div class="table-info">
+      <span>{{ filteredUsuarios().length }} usuario{{ filteredUsuarios().length !== 1 ? 's' : '' }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Telefono</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Fecha Alta</th>
+            <th class="th-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of filteredUsuarios(); track u.id) {
+            <tr>
+              <td class="td-bold">{{ u.nombreCompleto }}</td>
+              <td>{{ u.email }}</td>
+              <td>{{ u.telefono || '—' }}</td>
+              <td>
+                <span class="rol-badge" [class]="getRolClass(u.rolNombre)">
+                  {{ u.rolNombre }}
+                </span>
+              </td>
+              <td>
+                <span class="estado-badge" [class.activo]="u.activo" [class.inactivo]="!u.activo">
+                  {{ u.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td>{{ u.fechaAlta | date:'dd/MM/yyyy' }}</td>
+              <td class="td-actions">
+                <button class="btn-icon" title="Editar" (click)="router.navigate(['/usuarios', u.id, 'editar'])">
+                  <span class="material-icon">edit</span>
+                </button>
+                @if (u.activo) {
+                  <button class="btn-icon btn-icon--warning" title="Desactivar" (click)="onDesactivar(u)">
+                    <span class="material-icon">person_off</span>
+                  </button>
+                } @else {
+                  <button class="btn-icon btn-icon--success" title="Activar" (click)="onActivar(u)">
+                    <span class="material-icon">person</span>
+                  </button>
+                }
+                <button class="btn-icon btn-icon--danger" title="Eliminar" (click)="onEliminar(u)">
+                  <span class="material-icon">delete</span>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

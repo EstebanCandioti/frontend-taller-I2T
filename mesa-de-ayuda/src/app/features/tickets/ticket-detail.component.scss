@@ -84,6 +84,29 @@
   }
 }
 
+.btn-warning {
+  background: var(--warning, #d97706);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #b45309;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-success {
+  background: var(--success, #16a34a);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #15803d;
+  }
+}
+
 // Timeline
 .timeline-card {
   background: #fff;
@@ -249,7 +272,7 @@
   margin: 0;
 }
 
-// Técnico
+// Tecnico
 .tecnico-info {
   display: flex;
   align-items: center;
@@ -265,6 +288,11 @@
   padding: 6px;
 }
 
+.creador-icon {
+  color: var(--gray-600);
+  background: var(--gray-100);
+}
+
 .tecnico-name {
   display: block;
   font-size: 0.875rem;
@@ -278,7 +306,15 @@
   color: var(--gray-400);
 }
 
-// Resolución
+.tecnico-phone {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-top: 0.125rem;
+}
+
+// Resolucion
 .card-resolucion {
   border-color: var(--estado-cerrado);
   border-left: 3px solid var(--estado-cerrado);

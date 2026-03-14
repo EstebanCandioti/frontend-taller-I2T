@@ -15,11 +15,14 @@ import { TicketResponse, JuzgadoResponse, UsuarioResponse } from '../../core/mod
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { ExportButtonComponent } from '../../shared/components/export-button/export-button.component';
+import { ExportColumn } from '../../core/services/export.service';
+import { TicketAsignarDialogComponent, TicketDialogService } from './dialogs/ticket-dialogs.component';
 
 @Component({
   selector: 'app-ticket-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, DatePipe, TitleCasePipe, StatusBadgeComponent, LoadingSpinnerComponent, EmptyStateComponent],
+  imports: [RouterLink, FormsModule, DatePipe, TitleCasePipe, StatusBadgeComponent, LoadingSpinnerComponent, EmptyStateComponent, ExportButtonComponent, TicketAsignarDialogComponent],
   templateUrl: './ticket-list.component.html',
   styleUrl: './ticket-list.component.scss'
 })
@@ -29,6 +32,7 @@ export class TicketListComponent implements OnInit {
   private readonly usuarioService = inject(UsuarioService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly ticketDialogService = inject(TicketDialogService);
   readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
@@ -40,6 +44,12 @@ export class TicketListComponent implements OnInit {
   readonly loading = signal(true);
   readonly error = signal(false);
 
+  // Paginacion
+  currentPage = 0;
+  pageSize = 20;
+  totalElements = 0;
+  totalPages = 0;
+
   // Filtros
   readonly filtroEstado = signal('');
   readonly filtroPrioridad = signal('');
@@ -47,15 +57,27 @@ export class TicketListComponent implements OnInit {
   readonly filtroTecnicoId = signal<number | null>(null);
   readonly filtroBusqueda = signal('');
 
-  // Búsqueda con debounce
+  // Busqueda con debounce
   private readonly searchSubject = new Subject<string>();
 
   // Rol
   readonly isAdminOrOperario = computed(() => this.auth.hasRole('Admin', 'Operario'));
-  readonly isTecnico = computed(() => this.auth.hasRole('Técnico'));
+  readonly isTecnico = computed(() => this.auth.hasRole('Tecnico'));
+
+  readonly exportColumns: ExportColumn[] = [
+    { header: 'N°', field: 'id' },
+    { header: 'Titulo', field: 'titulo' },
+    { header: 'Estado', field: 'estado' },
+    { header: 'Prioridad', field: 'prioridad' },
+    { header: 'Juzgado', field: 'juzgadoNombre' },
+    { header: 'Tecnico', field: 'tecnicoNombreCompleto', format: (v) => v || '—' },
+    { header: 'Fecha Creacion', field: 'fechaCreacion', format: (v) => v ? new Date(v).toLocaleDateString('es-AR') : '—' },
+  ];
 
   readonly estados = ['SOLICITADO', 'ASIGNADO', 'EN_CURSO', 'CERRADO'];
   readonly prioridades = ['BAJA', 'MEDIA', 'ALTA', 'CRITICA'];
+
+  readonly Math = Math;
 
   ngOnInit(): void {
     this.cargarDatosAuxiliares();
@@ -97,12 +119,27 @@ export class TicketListComponent implements OnInit {
     this.router.navigate(['/tickets', id, 'editar']);
   }
 
-  private aplicarFiltros(): void {
-    this.sincronizarFiltrosEnUrl();
-    this.cargarTickets();
+  async asignarTecnico(ticket: TicketResponse): Promise<void> {
+    const dialogType = ticket.tecnicoId ? 'reasignar' : 'asignar';
+    const confirmed = await this.ticketDialogService.open(dialogType, ticket);
+    if (confirmed) {
+      this.cargarTickets(this.currentPage);
+    }
   }
 
-  private cargarTickets(): void {
+  irAPagina(page: number): void {
+    if (page >= 0 && page < this.totalPages) {
+      this.cargarTickets(page);
+    }
+  }
+
+  private aplicarFiltros(): void {
+    this.currentPage = 0;
+    this.sincronizarFiltrosEnUrl();
+    this.cargarTickets(0);
+  }
+
+  private cargarTickets(page = this.currentPage): void {
     this.loading.set(true);
     this.error.set(false);
 
@@ -113,11 +150,14 @@ export class TicketListComponent implements OnInit {
     if (this.filtroTecnicoId()) filtros.tecnicoId = this.filtroTecnicoId()!;
     if (this.filtroBusqueda()) filtros.q = this.filtroBusqueda();
 
-    this.ticketService.listar(filtros).pipe(
+    this.ticketService.listar(filtros, page, this.pageSize).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
-      next: tickets => {
-        this.tickets.set(tickets);
+      next: pagina => {
+        this.tickets.set(pagina.content);
+        this.totalElements = pagina.totalElements;
+        this.totalPages = pagina.totalPages;
+        this.currentPage = pagina.currentPage;
         this.loading.set(false);
       },
       error: () => {
@@ -131,11 +171,41 @@ export class TicketListComponent implements OnInit {
   private cargarDatosAuxiliares(): void {
     this.juzgadoService.listar().pipe(
       takeUntilDestroyed(this.destroyRef)
-    ).subscribe(data => this.juzgados.set(data));
+    ).subscribe({
+      next: data => this.juzgados.set(data ?? []),
+      error: (err) => console.error('Error al cargar juzgados:', err)
+    });
 
     this.usuarioService.tecnicosActivos().pipe(
       takeUntilDestroyed(this.destroyRef)
-    ).subscribe(data => this.tecnicos.set(data));
+    ).subscribe({
+      next: data => {
+        if (data && data.length > 0) {
+          this.tecnicos.set(data);
+        } else {
+          this.cargarTecnicosFallback();
+        }
+      },
+      error: () => {
+        this.cargarTecnicosFallback();
+      }
+    });
+  }
+
+  private cargarTecnicosFallback(): void {
+    this.usuarioService.listar().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: usuarios => {
+        const tecnicos = (usuarios ?? []).filter(u =>
+          u.activo && u.rolNombre?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() === 'tecnico'
+        );
+        if (tecnicos.length > 0) {
+          this.tecnicos.set(tecnicos);
+        }
+      },
+      error: (err) => console.error('Error en fallback tecnicos:', err)
+    });
   }
 
   private leerFiltrosDeUrl(): void {

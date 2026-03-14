@@ -26,18 +26,18 @@
           <span class="field-error">El email es requerido.</span>
         }
         @if (hasError('email', 'email')) {
-          <span class="field-error">Ingrese un email válido.</span>
+          <span class="field-error">Ingrese un email valido.</span>
         }
       </div>
 
       <div class="form-group">
-        <label for="password">Contraseña <span class="required">*</span></label>
+        <label for="password">Contrasena <span class="required">*</span></label>
         <div class="password-wrapper">
           <input
             id="password"
             [type]="showPassword() ? 'text' : 'password'"
             formControlName="password"
-            placeholder="Ingrese su contraseña"
+            placeholder="Ingrese su contrasena"
             [class.invalid]="hasError('password', 'required') || hasError('password', 'minlength')"
             autocomplete="current-password"
           />
@@ -45,16 +45,16 @@
             type="button"
             class="toggle-password"
             (click)="togglePassword()"
-            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            [attr.aria-label]="showPassword() ? 'Ocultar contrasena' : 'Mostrar contrasena'"
           >
             {{ showPassword() ? '🙈' : '👁' }}
           </button>
         </div>
         @if (hasError('password', 'required')) {
-          <span class="field-error">La contraseña es requerida.</span>
+          <span class="field-error">La contrasena es requerida.</span>
         }
         @if (hasError('password', 'minlength')) {
-          <span class="field-error">Mínimo 6 caracteres.</span>
+          <span class="field-error">Minimo 6 caracteres.</span>
         }
       </div>
 
@@ -67,7 +67,7 @@
           <span class="spinner"></span>
           Ingresando...
         } @else {
-          Iniciar sesión
+          Iniciar sesion
         }
       </button>
     </form>

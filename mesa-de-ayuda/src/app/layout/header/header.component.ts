@@ -3,6 +3,7 @@ import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
 import { filter, map } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 
 interface Breadcrumb {
   label: string;
@@ -17,7 +18,7 @@ const ROUTE_LABELS: Record<string, string> = {
   contratos: 'Contratos',
   juzgados: 'Juzgados',
   usuarios: 'Usuarios',
-  auditoria: 'Auditoría',
+  auditoria: 'Auditoria',
   nuevo: 'Nuevo',
   editar: 'Editar',
   detalle: 'Detalle',
@@ -26,7 +27,7 @@ const ROUTE_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, AsyncPipe],
+  imports: [RouterLink, AsyncPipe, NotificationBellComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })

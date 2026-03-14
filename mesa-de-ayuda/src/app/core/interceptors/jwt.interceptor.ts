@@ -24,9 +24,9 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
         auth.logout();
-        toast.error('Su sesión ha expirado. Inicie sesión nuevamente.');
+        toast.error('Su sesion ha expirado. Inicie sesion nuevamente.');
       } else if (error.status === 403) {
-        toast.error('No tiene permisos para realizar esta acción.');
+        toast.error('No tiene permisos para realizar esta accion.');
       } else if (error.status === 0) {
         toast.error('No se puede conectar con el servidor.');
       }

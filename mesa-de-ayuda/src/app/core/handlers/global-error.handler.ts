@@ -21,7 +21,7 @@ export class GlobalErrorHandler implements ErrorHandler {
 
     console.error('Error no manejado:', error);
     this.zone.run(() => {
-      this.toast.error('Ocurrió un error inesperado.');
+      this.toast.error('Ocurrio un error inesperado.');
     });
   }
 

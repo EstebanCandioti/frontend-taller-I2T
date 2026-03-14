@@ -12,7 +12,7 @@ export interface LoginResponse {
   rol: string;
 }
 
-export type Rol = 'Admin' | 'Operario' | 'Técnico';
+export type Rol = 'Admin' | 'Operario' | 'Tecnico';
 
 export interface CurrentUser {
   id: number;

@@ -1,0 +1,154 @@
+<div class="page-header">
+  <h1 class="page-title">{{ isEditing ? 'Editar Contrato' : 'Nuevo Contrato' }}</h1>
+</div>
+
+@if (loading()) {
+  <app-loading-spinner message="Cargando contrato..." />
+} @else {
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-card">
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="nombre" class="form-label">Nombre <span class="required">*</span></label>
+        <input id="nombre" formControlName="nombre" class="form-control"
+          [class.invalid]="isInvalid('nombre')" maxlength="150"
+          placeholder="Ej: Contrato Mantenimiento 2026">
+        @if (isInvalid('nombre')) {
+          <span class="form-error">El nombre es obligatorio.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="proveedor" class="form-label">Proveedor <span class="required">*</span></label>
+        <input id="proveedor" formControlName="proveedor" class="form-control"
+          [class.invalid]="isInvalid('proveedor')" maxlength="150"
+          placeholder="Ej: TechCorp S.A.">
+        @if (isInvalid('proveedor')) {
+          <span class="form-error">El proveedor es obligatorio.</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="fechaInicio" class="form-label">Fecha Inicio <span class="required">*</span></label>
+        <input id="fechaInicio" type="date" formControlName="fechaInicio" class="form-control"
+          [class.invalid]="isInvalid('fechaInicio')">
+        @if (isInvalid('fechaInicio')) {
+          <span class="form-error">La fecha de inicio es obligatoria.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="fechaFin" class="form-label">Fecha Fin <span class="required">*</span></label>
+        <input id="fechaFin" type="date" formControlName="fechaFin" class="form-control"
+          [class.invalid]="isInvalid('fechaFin')">
+        @if (isInvalid('fechaFin')) {
+          <span class="form-error">La fecha de fin es obligatoria.</span>
+        }
+        @if (form.hasError('fechaFinAnterior') && form.get('fechaFin')!.touched) {
+          <span class="form-error">
+            <span class="material-icon error-icon">warning</span>
+            La fecha fin debe ser posterior a la fecha inicio.
+          </span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="cobertura" class="form-label">Cobertura</label>
+        <input id="cobertura" formControlName="cobertura" class="form-control" maxlength="255"
+          placeholder="Ej: Hardware + Software + Soporte on-site">
+      </div>
+
+      <div class="form-group">
+        <label for="monto" class="form-label">Monto ($)</label>
+        <input id="monto" type="number" formControlName="monto" class="form-control"
+          min="0" step="0.01" placeholder="0.00">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="diasAlertaVencimiento" class="form-label">Dias alerta vencimiento</label>
+        <input id="diasAlertaVencimiento" type="number" formControlName="diasAlertaVencimiento" class="form-control"
+          min="1" placeholder="30">
+        <span class="form-hint">Dias antes del vencimiento para alertar.</span>
+      </div>
+      <div class="form-group">
+        <!-- spacer -->
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="observaciones" class="form-label">Observaciones</label>
+      <textarea id="observaciones" formControlName="observaciones" class="form-control textarea"
+        rows="3" placeholder="Notas adicionales (opcional)"></textarea>
+    </div>
+
+    <!-- Multi-select Hardware -->
+    <div class="form-group">
+      <div class="multi-select-header">
+        <label class="form-label">Hardware vinculado ({{ form.value.hardwareIds?.length || 0 }})</label>
+        <div class="filter-inline">
+          <span class="material-icon filter-icon">filter_list</span>
+          <select class="filter-select" [value]="hwFilterJuzgadoId()"
+            (change)="hwFilterJuzgadoId.set($any($event.target).value)">
+            <option value="">Todos los juzgados</option>
+            @for (j of juzgados(); track j.id) {
+              <option [value]="j.id">{{ j.nombre }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      @if (allHardware().length > 0) {
+        @if (filteredHardware().length > 0) {
+          <div class="multi-select-grid">
+            @for (h of filteredHardware(); track h.id) {
+              <label class="multi-select-item" [class.selected]="isHardwareSelected(h.id)">
+                <input type="checkbox" [checked]="isHardwareSelected(h.id)"
+                  (change)="onHardwareToggle(h.id)">
+                <span class="item-label">{{ h.nroInventario }} — {{ h.marca }} {{ h.modelo }}</span>
+                <span class="item-sub">{{ h.juzgadoNombre }}</span>
+              </label>
+            }
+          </div>
+        } @else {
+          <p class="form-hint">No hay hardware en este juzgado.</p>
+        }
+      } @else {
+        <p class="form-hint">No hay hardware registrado.</p>
+      }
+    </div>
+
+    <!-- Multi-select Software -->
+    <div class="form-group">
+      <label class="form-label">Software vinculado ({{ form.value.softwareIds?.length || 0 }})</label>
+      @if (softwareList().length > 0) {
+        <div class="multi-select-grid">
+          @for (s of softwareList(); track s.id) {
+            <label class="multi-select-item" [class.selected]="isSoftwareSelected(s.id)">
+              <input type="checkbox" [checked]="isSoftwareSelected(s.id)"
+                (change)="onSoftwareToggle(s.id)">
+              <span class="item-label">{{ s.nombre }}</span>
+              <span class="item-sub">{{ s.proveedor }} — {{ s.cantidadLicencias }} lic.</span>
+            </label>
+          }
+        </div>
+      } @else {
+        <p class="form-hint">No hay software registrado.</p>
+      }
+    </div>
+
+    <div class="form-actions">
+      <a routerLink="/contratos" class="btn btn-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary" [disabled]="form.invalid || form.pristine || submitting()">
+        @if (submitting()) {
+          <span class="spinner-btn"></span>
+        }
+        {{ isEditing ? 'Guardar Cambios' : 'Registrar Contrato' }}
+      </button>
+    </div>
+  </form>
+}

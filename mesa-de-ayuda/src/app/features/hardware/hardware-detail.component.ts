@@ -49,7 +49,7 @@ export class HardwareDetailComponent implements OnInit {
 
     const confirmed = await this.confirmDialog.confirm({
       title: 'Eliminar Hardware',
-      message: `¿Eliminar "${hw.nroInventario} - ${hw.marca} ${hw.modelo}"? Esta acción no se puede deshacer.`,
+      message: `¿Eliminar "${hw.nroInventario} - ${hw.marca} ${hw.modelo}"? Esta accion no se puede deshacer.`,
       confirmText: 'Eliminar',
       type: 'danger'
     });

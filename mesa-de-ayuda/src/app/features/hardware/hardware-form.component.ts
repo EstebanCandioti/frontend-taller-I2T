@@ -8,6 +8,7 @@ import { JuzgadoService } from '../../core/services/juzgado.service';
 import { ContratoService } from '../../core/services/contrato.service';
 import { ToastService } from '../../core/services/toast.service';
 import { JuzgadoResponse, ContratoResponse } from '../../core/models';
+import { HARDWARE_CLASSES } from '../../core/models/hardware.model';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
@@ -33,7 +34,7 @@ export class HardwareFormComponent implements OnInit {
   readonly loadingData = signal(true);
   readonly submitting = signal(false);
 
-  readonly clases = ['PC Desktop', 'Impresora', 'Scanner', 'Monitor'];
+  readonly clases = [...HARDWARE_CLASSES];
 
   isEditing = false;
   hardwareId?: number;

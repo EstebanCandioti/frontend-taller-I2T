@@ -36,7 +36,7 @@ export class TicketFormComponent implements OnInit {
   readonly juzgados = signal<JuzgadoResponse[]>([]);
   readonly hardwareList = signal<HardwareResponse[]>([]);
 
-  // Modo edición
+  // Modo edicion
   readonly isEdit = signal(false);
   readonly ticketId = signal<number | null>(null);
   private ticketOriginal: TicketResponse | null = null;
@@ -150,7 +150,7 @@ export class TicketFormComponent implements OnInit {
   }
 
   private cargarHardware(juzgadoId: number): void {
-    this.hardwareService.listar({ juzgadoId }).pipe(
+    this.hardwareService.listarTodos({ juzgadoId }).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(data => this.hardwareList.set(data));
   }

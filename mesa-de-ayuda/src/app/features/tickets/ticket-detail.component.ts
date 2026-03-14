@@ -6,7 +6,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TicketService } from '../../core/services/ticket.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { UsuarioService } from '../../core/services/usuario.service';
 import { TicketResponse } from '../../core/models';
+import { TicketDialogService, TicketCerrarDialogComponent } from './dialogs/ticket-dialogs.component';
 
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
@@ -22,20 +24,25 @@ interface TimelineStep {
 @Component({
   selector: 'app-ticket-detail',
   standalone: true,
-  imports: [RouterLink, DatePipe, StatusBadgeComponent, LoadingSpinnerComponent],
+  imports: [RouterLink, DatePipe, StatusBadgeComponent, LoadingSpinnerComponent, TicketCerrarDialogComponent],
   templateUrl: './ticket-detail.component.html',
   styleUrl: './ticket-detail.component.scss'
 })
 export class TicketDetailComponent implements OnInit {
   private readonly ticketService = inject(TicketService);
+  private readonly usuarioService = inject(UsuarioService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly ticketDialogService = inject(TicketDialogService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly ticket = signal<TicketResponse | null>(null);
+  readonly creadorTelefono = signal<string | null>(null);
+  readonly tecnicoTelefono = signal<string | null>(null);
   readonly loading = signal(true);
+  readonly actionLoading = signal(false);
   readonly isAdminOrOperario = computed(() => this.auth.hasRole('Admin', 'Operario'));
 
   readonly timeline = computed<TimelineStep[]>(() => {
@@ -87,6 +94,35 @@ export class TicketDetailComponent implements OnInit {
     this.cargarTicket(id);
   }
 
+  pasarAEnCurso(): void {
+    const t = this.ticket();
+    if (!t) return;
+
+    this.actionLoading.set(true);
+    this.ticketService.pasarAEnCurso(t.id).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: () => {
+        this.toast.success('Ticket pasado a En Curso.');
+        this.actionLoading.set(false);
+        this.recargar();
+      },
+      error: () => {
+        this.actionLoading.set(false);
+      }
+    });
+  }
+
+  async cerrarTicket(): Promise<void> {
+    const t = this.ticket();
+    if (!t) return;
+
+    const result = await this.ticketDialogService.open('cerrar', t);
+    if (result) {
+      this.recargar();
+    }
+  }
+
   private cargarTicket(id: number): void {
     this.loading.set(true);
     this.ticketService.obtenerPorId(id).pipe(
@@ -94,11 +130,45 @@ export class TicketDetailComponent implements OnInit {
     ).subscribe({
       next: ticket => {
         this.ticket.set(ticket);
+        this.cargarTelefonoCreador(ticket.creadoPorId);
+        this.cargarTelefonoTecnico(ticket.tecnicoId);
         this.loading.set(false);
       },
       error: () => {
         this.toast.error('No se pudo cargar el ticket.');
         this.router.navigate(['/tickets']);
+      }
+    });
+  }
+
+  private cargarTelefonoCreador(usuarioId: number): void {
+    this.creadorTelefono.set(null);
+
+    this.usuarioService.obtenerPorId(usuarioId).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: usuario => {
+        this.creadorTelefono.set(usuario.telefono || null);
+      },
+      error: () => {
+        this.creadorTelefono.set(null);
+      }
+    });
+  }
+
+  private cargarTelefonoTecnico(usuarioId?: number): void {
+    this.tecnicoTelefono.set(null);
+
+    if (!usuarioId) return;
+
+    this.usuarioService.obtenerPorId(usuarioId).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: usuario => {
+        this.tecnicoTelefono.set(usuario.telefono || null);
+      },
+      error: () => {
+        this.tecnicoTelefono.set(null);
       }
     });
   }

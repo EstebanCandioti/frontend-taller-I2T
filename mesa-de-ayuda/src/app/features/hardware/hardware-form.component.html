@@ -16,7 +16,7 @@
           [class.invalid]="isInvalid('nroInventario')" maxlength="50"
           placeholder="Ej: INV-2024-001">
         @if (isInvalid('nroInventario')) {
-          <span class="form-error">El número de inventario es obligatorio.</span>
+          <span class="form-error">El numero de inventario es obligatorio.</span>
         }
       </div>
 
@@ -72,13 +72,13 @@
 
       <div class="form-group">
         <label for="ubicacionFisica" class="form-label">
-          Ubicación Física <span class="required">*</span>
+          Ubicacion Fisica <span class="required">*</span>
         </label>
         <input id="ubicacionFisica" formControlName="ubicacionFisica" class="form-control"
           [class.invalid]="isInvalid('ubicacionFisica')" maxlength="200"
           placeholder="Ej: Piso 3, Oficina 301">
         @if (isInvalid('ubicacionFisica')) {
-          <span class="form-error">La ubicación física es obligatoria.</span>
+          <span class="form-error">La ubicacion fisica es obligatoria.</span>
         }
       </div>
     </div>

@@ -11,13 +11,14 @@
   </nav>
 
   <div class="header-actions">
+    <app-notification-bell />
     @if (currentUser$ | async; as user) {
       <div class="user-info">
         <span class="user-name">{{ user.nombreCompleto }}</span>
         <span class="user-role">{{ user.rol }}</span>
       </div>
     }
-    <button class="btn-logout" (click)="logout()" title="Cerrar sesión">
+    <button class="btn-logout" (click)="logout()" title="Cerrar sesion">
       <span class="material-icon">logout</span>
     </button>
   </div>

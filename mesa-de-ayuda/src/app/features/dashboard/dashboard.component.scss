@@ -1,0 +1,263 @@
+.dashboard {
+  padding: 1.5rem;
+  max-width: 1280px;
+}
+
+.dashboard-header {
+  margin-bottom: 1.5rem;
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--gray-800);
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+    margin-top: 0.25rem;
+  }
+}
+
+// === Tarjetas de resumen ===
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+
+    .card-arrow {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
+
+.card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  flex-shrink: 0;
+
+  .material-icon {
+    font-size: 22px;
+  }
+}
+
+.card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-value {
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--gray-800);
+}
+
+.card-label {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-arrow {
+  font-size: 18px;
+  color: var(--gray-400);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all var(--transition-fast);
+}
+
+// Card color themes
+.card--tickets .card-icon { background: var(--info-light); color: var(--info); }
+.card--criticos .card-icon { background: var(--error-light); color: var(--error); }
+.card--sin-asignar .card-icon { background: #f3f4f6; color: var(--gray-600); }
+.card--contratos-prox .card-icon { background: var(--warning-light); color: var(--warning); }
+.card--contratos-venc .card-icon { background: var(--error-light); color: var(--error); }
+.card--hardware .card-icon { background: #ede9fe; color: #7c3aed; }
+.card--software .card-icon { background: #d1fae5; color: #059669; }
+
+// === Secciones inferiores ===
+.dashboard-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.section-panel {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 1rem;
+
+  .material-icon {
+    font-size: 20px;
+    color: var(--primary);
+  }
+}
+
+.empty-text {
+  text-align: center;
+  color: var(--gray-400);
+  font-size: 0.875rem;
+  padding: 2rem 0;
+}
+
+// === Tablas ===
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+
+  th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    border-bottom: 2px solid var(--gray-200);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid var(--gray-100);
+    color: var(--gray-700);
+  }
+}
+
+.clickable-row {
+  cursor: pointer;
+  transition: background var(--transition-fast);
+
+  &:hover {
+    background: var(--gray-50);
+  }
+}
+
+.text-center { text-align: center; }
+.text-muted { color: var(--gray-500); }
+.text-nowrap { white-space: nowrap; }
+
+.ticket-title-cell {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Count badges
+.count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-asignado {
+  background: var(--estado-asignado-bg);
+  color: var(--estado-asignado);
+}
+
+.badge-en-curso {
+  background: var(--estado-en-curso-bg);
+  color: var(--estado-en-curso);
+}
+
+.badge-total {
+  background: var(--primary-100);
+  color: var(--primary);
+}
+
+// View all link
+.view-all-link {
+  display: block;
+  text-align: center;
+  padding: 0.75rem 0 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Material icons
+.material-icon {
+  font-family: 'Material Symbols Outlined', 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}
+
+// Responsive
+@media (max-width: 1100px) {
+  .dashboard-bottom {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}

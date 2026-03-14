@@ -19,7 +19,7 @@
   --gray-800: #1f2937;
   --gray-900: #111827;
 
-  // Semánticos
+  // Semanticos
   --success: #16a34a;
   --success-light: #dcfce7;
   --warning: #d97706;
@@ -127,7 +127,7 @@ a {
   --danger-light: var(--error-light);
 }
 
-// === Estilos globales de validación de formularios ===
+// === Estilos globales de validacion de formularios ===
 .form-error {
   display: flex;
   align-items: center;
@@ -168,4 +168,61 @@ a {
 .required {
   color: var(--error);
   font-weight: 700;
+}
+
+// === Paginacion ===
+.pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.pagination-info {
+  color: var(--gray-500);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.pagination-current {
+  color: var(--gray-700);
+  font-weight: 500;
+  padding: 0 0.5rem;
+  white-space: nowrap;
+}
+
+.btn-page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius);
+  background: #fff;
+  color: var(--gray-700);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 }

@@ -1,0 +1,104 @@
+@if (loading()) {
+  <app-loading-spinner message="Cargando dashboard..." />
+} @else {
+  <div class="dashboard">
+    <div class="dashboard-header">
+      <h1>Bienvenido, {{ userName() }}</h1>
+      <p class="subtitle">Tus tickets asignados</p>
+    </div>
+
+    <!-- Aviso recordatorio -->
+    <div class="reminder-banner">
+      <span class="material-icon">info</span>
+      <span>Cuando termines un ticket, avisa a Mesa de Ayuda para que cierren el caso.</span>
+    </div>
+
+    <!-- Tarjetas -->
+    <div class="cards-grid">
+      <div class="stat-card card--asignados">
+        <div class="card-icon">
+          <span class="material-icon">assignment</span>
+        </div>
+        <div class="card-body">
+          <span class="card-value">{{ misAsignados() }}</span>
+          <span class="card-label">Asignados</span>
+        </div>
+      </div>
+
+      <div class="stat-card card--en-curso">
+        <div class="card-icon">
+          <span class="material-icon">pending_actions</span>
+        </div>
+        <div class="card-body">
+          <span class="card-value">{{ misEnCurso() }}</span>
+          <span class="card-label">En Curso</span>
+        </div>
+      </div>
+
+      <div class="stat-card card--cerrados">
+        <div class="card-icon">
+          <span class="material-icon">task_alt</span>
+        </div>
+        <div class="card-body">
+          <span class="card-value">{{ cerradosHoy() }}</span>
+          <span class="card-label">Completados Hoy</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla Mis Tickets -->
+    <section class="section-panel">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="material-icon">list_alt</span>
+          Mis Tickets Activos
+        </h2>
+        @if (tickets().length > 0) {
+          <app-export-button
+            title="Mis Tickets"
+            filename="mis-tickets"
+            [columns]="exportColumns"
+            [data]="tickets()" />
+        }
+      </div>
+
+      @if (ticketsActivos().length === 0) {
+        <div class="empty-state">
+          <span class="material-icon empty-icon">inbox</span>
+          <span>No tenes tickets activos.</span>
+        </div>
+      } @else {
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>N.</th>
+                <th>Titulo</th>
+                <th>Estado</th>
+                <th>Prioridad</th>
+                <th>Juzgado</th>
+                <th>Referente</th>
+                <th>Telefono</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (t of ticketsActivos(); track t.id) {
+                <tr class="clickable-row" [routerLink]="['/tickets', t.id]">
+                  <td class="text-muted">#{{ t.id }}</td>
+                  <td class="ticket-title-cell">{{ t.titulo }}</td>
+                  <td><app-status-badge [value]="t.estado" type="estado" /></td>
+                  <td><app-status-badge [value]="t.prioridad" type="prioridad" /></td>
+                  <td>{{ t.juzgadoNombre }}</td>
+                  <td>{{ t.referenteNombre || '-' }}</td>
+                  <td class="text-nowrap">{{ t.referenteTelefono || '-' }}</td>
+                  <td class="text-muted text-nowrap">{{ t.fechaCreacion | date:'dd/MM/yy' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  </div>
+}

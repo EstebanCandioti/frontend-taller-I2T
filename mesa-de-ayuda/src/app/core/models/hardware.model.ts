@@ -1,3 +1,16 @@
+export const HARDWARE_CLASSES = [
+  'PC Desktop',
+  'Notebook',
+  'Servidor',
+  'Impresora',
+  'Scanner',
+  'Monitor',
+  'Switch / Router',
+  'UPS',
+  'Tablet',
+  'Otro',
+] as const;
+
 export interface HardwareRequest {
   nroInventario: string;
   clase: string;

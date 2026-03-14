@@ -69,30 +69,53 @@
       </div>
 
       <div class="form-group">
-        <label for="juzgadoId" class="form-label">Juzgado</label>
-        <select id="juzgadoId" formControlName="juzgadoId" class="form-control">
-          <option value="">— Sin juzgado específico —</option>
-          @for (j of juzgados(); track j.id) {
-            <option [value]="j.id">{{ j.nombre }}</option>
-          }
-        </select>
+        <!-- Spacer -->
       </div>
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label for="hardwareId" class="form-label">Hardware asociado</label>
-        <select id="hardwareId" formControlName="hardwareId" class="form-control">
-          <option value="">— Sin hardware asociado —</option>
-          @for (h of hardwareList(); track h.id) {
-            <option [value]="h.id">{{ h.nroInventario }} — {{ h.marca }} {{ h.modelo }}</option>
+    <!-- Juzgados multi-select -->
+    <div class="form-group">
+      <label class="form-label">Juzgados</label>
+      <select class="form-control" (change)="addJuzgado($event)">
+        <option value="">— Agregar juzgado —</option>
+        @for (j of availableJuzgados(); track j.id) {
+          <option [value]="j.id">{{ j.nombre }} — {{ j.fuero }}</option>
+        }
+      </select>
+      @if (selectedJuzgadoObjects().length > 0) {
+        <div class="tags-container">
+          @for (j of selectedJuzgadoObjects(); track j.id) {
+            <span class="tag">
+              {{ j.nombre }} — {{ j.fuero }}
+              <button type="button" class="tag-remove" (click)="removeJuzgado(j.id)" title="Quitar">&times;</button>
+            </span>
           }
-        </select>
-      </div>
+        </div>
+      }
+    </div>
 
-      <div class="form-group">
-        <!-- Spacer -->
-      </div>
+    <!-- Hardware multi-select -->
+    <div class="form-group">
+      <label class="form-label">Hardware asociado</label>
+      <select class="form-control" (change)="addHardware($event)">
+        <option value="">— Agregar hardware —</option>
+        @for (h of availableHardware(); track h.id) {
+          <option [value]="h.id">{{ h.nroInventario }} — {{ h.marca }} {{ h.modelo }}</option>
+        }
+      </select>
+      @if (selectedHardwareIds().length > 0) {
+        <div class="tags-container">
+          @for (h of selectedHardwareObjects(); track h.id) {
+            <span class="tag">
+              {{ h.nroInventario }} — {{ h.marca }} {{ h.modelo }}
+              <button type="button" class="tag-remove" (click)="removeHardware(h.id)" title="Quitar">&times;</button>
+            </span>
+          }
+        </div>
+        <span class="form-hint">
+          {{ selectedHardwareIds().length }} de {{ cantidadLicencias() }} licencias asignadas a hardware.
+        </span>
+      }
     </div>
 
     <div class="form-group">

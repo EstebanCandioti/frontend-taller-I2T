@@ -8,7 +8,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { UsuarioResponse, TicketResponse } from '../../../core/models';
 
 // ═══════════════════════════════════════════
-// Servicio que controla la apertura de los diálogos
+// Servicio que controla la apertura de los dialogos
 // ═══════════════════════════════════════════
 export type TicketDialogType = 'asignar' | 'reasignar' | 'cerrar' | 'eliminar' | null;
 
@@ -35,7 +35,7 @@ export class TicketDialogService {
 }
 
 // ═══════════════════════════════════════════
-// Diálogo Asignar / Reasignar
+// Dialogo Asignar / Reasignar
 // ═══════════════════════════════════════════
 @Component({
   selector: 'app-ticket-asignar-dialog',
@@ -46,7 +46,7 @@ export class TicketDialogService {
       <div class="dialog-backdrop" (click)="onCancel()">
         <div class="dialog" (click)="$event.stopPropagation()">
           <div class="dialog-header">
-            <h3>{{ dialogService.dialogType() === 'asignar' ? 'Asignar Técnico' : 'Reasignar Técnico' }}</h3>
+            <h3>{{ dialogService.dialogType() === 'asignar' ? 'Asignar Tecnico' : 'Reasignar Tecnico' }}</h3>
             <button class="dialog-close" (click)="onCancel()">
               <span class="material-icon">close</span>
             </button>
@@ -58,20 +58,20 @@ export class TicketDialogService {
             <form [formGroup]="form" (ngSubmit)="onSubmit()">
               <div class="form-group">
                 <label for="tecnicoId" class="form-label">
-                  Técnico <span class="required">*</span>
+                  Tecnico <span class="required">*</span>
                 </label>
                 @if (loadingTecnicos()) {
-                  <p class="loading-text">Cargando técnicos...</p>
+                  <p class="loading-text">Cargando tecnicos...</p>
                 } @else {
                   <select id="tecnicoId" formControlName="tecnicoId" class="form-control"
                     [class.invalid]="form.get('tecnicoId')!.touched && form.get('tecnicoId')!.hasError('required')">
-                    <option value="">— Seleccionar técnico —</option>
+                    <option value="">— Seleccionar tecnico —</option>
                     @for (t of tecnicos(); track t.id) {
                       <option [value]="t.id">{{ t.nombreCompleto }}</option>
                     }
                   </select>
                   @if (form.get('tecnicoId')!.touched && form.get('tecnicoId')!.hasError('required')) {
-                    <span class="form-error">Debe seleccionar un técnico.</span>
+                    <span class="form-error">Debe seleccionar un tecnico.</span>
                   }
                 }
               </div>
@@ -115,17 +115,15 @@ export class TicketAsignarDialogComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: data => {
-        // En reasignar, excluir técnico actual
         const ticket = this.dialogService.ticket();
-        if (this.dialogService.dialogType() === 'reasignar' && ticket?.tecnicoId) {
-          this.tecnicos.set(data.filter(t => t.id !== ticket.tecnicoId));
-        } else {
-          this.tecnicos.set(data);
+        this.tecnicos.set(data);
+        if (ticket?.tecnicoId) {
+          this.form.patchValue({ tecnicoId: ticket.tecnicoId.toString() });
         }
         this.loadingTecnicos.set(false);
       },
       error: () => {
-        this.toast.error('Error al cargar los técnicos.');
+        this.toast.error('Error al cargar los tecnicos.');
         this.loadingTecnicos.set(false);
       }
     });
@@ -152,7 +150,7 @@ export class TicketAsignarDialogComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: () => {
-        this.toast.success(isReasignar ? 'Técnico reasignado correctamente.' : 'Técnico asignado correctamente.');
+        this.toast.success(isReasignar ? 'Tecnico reasignado correctamente.' : 'Tecnico asignado correctamente.');
         this.dialogService.close(true);
       },
       error: () => {
@@ -167,7 +165,7 @@ export class TicketAsignarDialogComponent implements OnInit {
 }
 
 // ═══════════════════════════════════════════
-// Diálogo Cerrar Ticket
+// Dialogo Cerrar Ticket
 // ═══════════════════════════════════════════
 @Component({
   selector: 'app-ticket-cerrar-dialog',
@@ -190,7 +188,7 @@ export class TicketAsignarDialogComponent implements OnInit {
             <form [formGroup]="form" (ngSubmit)="onSubmit()">
               <div class="form-group">
                 <label for="resolucion" class="form-label">
-                  Resolución <span class="required">*</span>
+                  Resolucion <span class="required">*</span>
                 </label>
                 <textarea
                   id="resolucion"
@@ -198,9 +196,9 @@ export class TicketAsignarDialogComponent implements OnInit {
                   class="form-control textarea"
                   [class.invalid]="form.get('resolucion')!.touched && form.get('resolucion')!.hasError('required')"
                   rows="4"
-                  placeholder="Describa cómo se resolvió el problema..."></textarea>
+                  placeholder="Describa como se resolvio el problema..."></textarea>
                 @if (form.get('resolucion')!.touched && form.get('resolucion')!.hasError('required')) {
-                  <span class="form-error">La resolución es obligatoria para cerrar el ticket.</span>
+                  <span class="form-error">La resolucion es obligatoria para cerrar el ticket.</span>
                 }
               </div>
             </form>
@@ -264,7 +262,7 @@ export class TicketCerrarDialogComponent {
 }
 
 // ═══════════════════════════════════════════
-// Diálogo Eliminar Ticket
+// Dialogo Eliminar Ticket
 // ═══════════════════════════════════════════
 @Component({
   selector: 'app-ticket-eliminar-dialog',
@@ -283,8 +281,8 @@ export class TicketCerrarDialogComponent {
             <div class="warning-banner">
               <span class="material-icon warning-icon">warning</span>
               <div>
-                <strong>Esta acción no se puede deshacer.</strong>
-                <p>Se eliminará el ticket #{{ dialogService.ticket()?.id }} — "{{ dialogService.ticket()?.titulo }}"</p>
+                <strong>Esta accion no se puede deshacer.</strong>
+                <p>Se eliminara el ticket #{{ dialogService.ticket()?.id }} — "{{ dialogService.ticket()?.titulo }}"</p>
               </div>
             </div>
           </div>

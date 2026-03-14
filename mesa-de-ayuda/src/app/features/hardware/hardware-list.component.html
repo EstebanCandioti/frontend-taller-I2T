@@ -1,6 +1,11 @@
 <div class="page-header">
   <h1 class="page-title">Hardware</h1>
   <div class="page-actions">
+    <app-export-button
+      title="Hardware"
+      filename="hardware"
+      [columns]="exportColumns"
+      [data]="hardware()" />
     <button class="btn btn-primary" routerLink="/hardware/nuevo">
       <span class="material-icon">add</span>
       Nuevo Hardware
@@ -56,14 +61,14 @@
 } @else if (hardware().length === 0) {
   <app-empty-state
     icon="computer"
-    title="No se encontró hardware"
-    [message]="hayFiltrosActivos ? 'No hay resultados con los filtros aplicados.' : 'Aún no se registró hardware en el sistema.'"
+    title="No se encontro hardware"
+    [message]="hayFiltrosActivos ? 'No hay resultados con los filtros aplicados.' : 'Aun no se registro hardware en el sistema.'"
     [actionLabel]="hayFiltrosActivos ? 'Limpiar filtros' : 'Registrar hardware'"
     (action)="hayFiltrosActivos ? limpiarFiltros() : router.navigate(['/hardware/nuevo'])" />
 } @else {
   <div class="table-card">
     <div class="table-info">
-      <span>{{ hardware().length }} registro{{ hardware().length !== 1 ? 's' : '' }}</span>
+      <span>{{ totalElements }} registro{{ totalElements !== 1 ? 's' : '' }}</span>
     </div>
     <div class="table-responsive">
       <table class="data-table">
@@ -74,7 +79,7 @@
             <th>Marca / Modelo</th>
             <th>Nro. Serie</th>
             <th>Juzgado</th>
-            <th>Ubicación</th>
+            <th>Ubicacion</th>
             <th>Contrato</th>
             <th class="th-actions">Acciones</th>
           </tr>
@@ -111,4 +116,20 @@
       </table>
     </div>
   </div>
+
+  @if (totalPages > 1) {
+    <div class="pagination-container">
+      <div class="pagination-info">
+        Mostrando {{ currentPage * pageSize + 1 }}–{{ Math.min((currentPage + 1) * pageSize, totalElements) }}
+        de {{ totalElements }} registros
+      </div>
+      <div class="pagination-controls">
+        <button class="btn-page" (click)="irAPagina(0)" [disabled]="currentPage === 0" title="Primera">«</button>
+        <button class="btn-page" (click)="irAPagina(currentPage - 1)" [disabled]="currentPage === 0" title="Anterior">‹</button>
+        <span class="pagination-current">Pagina {{ currentPage + 1 }} de {{ totalPages }}</span>
+        <button class="btn-page" (click)="irAPagina(currentPage + 1)" [disabled]="currentPage === totalPages - 1" title="Siguiente">›</button>
+        <button class="btn-page" (click)="irAPagina(totalPages - 1)" [disabled]="currentPage === totalPages - 1" title="Ultima">»</button>
+      </div>
+    </div>
+  }
 }

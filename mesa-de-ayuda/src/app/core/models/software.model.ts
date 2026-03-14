@@ -1,11 +1,14 @@
+import { JuzgadoResponse } from './juzgado.model';
+import { HardwareResponse } from './hardware.model';
+
 export interface SoftwareRequest {
   nombre: string;
   proveedor: string;
   cantidadLicencias: number;
   fechaVencimiento?: string;
   contratoId: number;
-  juzgadoId?: number;
-  hardwareId?: number;
+  juzgadoIds?: number[];
+  hardwareIds?: number[];
   observaciones?: string;
 }
 
@@ -20,8 +23,14 @@ export interface SoftwareResponse {
   observaciones: string;
   contratoId: number;
   contratoNombre: string;
-  juzgadoId?: number;
-  juzgadoNombre?: string;
-  hardwareId?: number;
-  hardwareNroInventario?: string;
+  juzgados?: JuzgadoResponse[];
+  hardware?: HardwareResponse[];
+}
+
+export interface SoftwareHardwareRequest {
+  hardwareIds: number[];
+}
+
+export interface SoftwareJuzgadoRequest {
+  juzgadoIds: number[];
 }

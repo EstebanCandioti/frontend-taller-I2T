@@ -4,6 +4,7 @@ import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   ApiResponse,
+  PaginatedResponse,
   TicketRequest,
   TicketResponse,
   TicketAsignarRequest,
@@ -23,8 +24,12 @@ export class TicketService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/tickets`;
 
-  listar(filtros?: TicketFiltros): Observable<TicketResponse[]> {
-    let params = new HttpParams();
+  listar(filtros?: TicketFiltros, page = 0, size = 20, sort = 'fechaCreacion,desc'): Observable<PaginatedResponse<TicketResponse>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', sort);
+
     if (filtros) {
       if (filtros.estado) params = params.set('estado', filtros.estado);
       if (filtros.prioridad) params = params.set('prioridad', filtros.prioridad);
@@ -33,8 +38,14 @@ export class TicketService {
       if (filtros.q) params = params.set('q', filtros.q);
     }
     return this.http
-      .get<ApiResponse<TicketResponse[]>>(this.baseUrl, { params })
+      .get<ApiResponse<PaginatedResponse<TicketResponse>>>(this.baseUrl, { params })
       .pipe(map(r => r.data));
+  }
+
+  listarTodos(filtros?: TicketFiltros, sort = 'fechaCreacion,desc', size = 1000): Observable<TicketResponse[]> {
+    return this.listar(filtros, 0, size, sort).pipe(
+      map(pagina => pagina.content)
+    );
   }
 
   obtenerPorId(id: number): Observable<TicketResponse> {
