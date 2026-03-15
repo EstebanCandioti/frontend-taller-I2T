@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, DestroyRef } from '@angular/core';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -6,8 +6,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { JuzgadoService } from '../../core/services/juzgado.service';
 import { CircunscripcionService } from '../../core/services/circunscripcion.service';
 import { ToastService } from '../../core/services/toast.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { CircunscripcionResponse } from '../../core/models';
+import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { mapBackendErrors, scrollToFirstError } from '../../core/utils/form-error-mapper';
 
 @Component({
   selector: 'app-juzgado-form',
@@ -16,7 +19,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
   templateUrl: './juzgado-form.component.html',
   styleUrl: './juzgado-form.component.scss'
 })
-export class JuzgadoFormComponent implements OnInit {
+export class JuzgadoFormComponent implements OnInit, OnDestroy, HasUnsavedChanges {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -24,6 +27,7 @@ export class JuzgadoFormComponent implements OnInit {
   private readonly circunscripcionService = inject(CircunscripcionService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly breadcrumbService = inject(BreadcrumbService);
 
   readonly circunscripciones = signal<CircunscripcionResponse[]>([]);
   readonly loading = signal(false);
@@ -33,6 +37,7 @@ export class JuzgadoFormComponent implements OnInit {
 
   isEditing = false;
   juzgadoId?: number;
+  submitted = false;
 
   form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(150)]],
@@ -69,6 +74,8 @@ export class JuzgadoFormComponent implements OnInit {
             edificio: j.edificio || '',
             circunscripcionId: j.circunscripcionId.toString()
           });
+          this.breadcrumbService.setLabel(j.nombre);
+          this.form.markAsPristine();
           this.loading.set(false);
         },
         error: () => {
@@ -82,10 +89,12 @@ export class JuzgadoFormComponent implements OnInit {
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      scrollToFirstError();
       return;
     }
 
     this.submitting.set(true);
+    this.submitted = true;
     const val = this.form.getRawValue();
 
     const dto = {
@@ -105,14 +114,30 @@ export class JuzgadoFormComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.toast.success(this.isEditing ? 'Juzgado actualizado.' : 'Juzgado registrado.');
+        this.form.markAsPristine();
         this.router.navigate(['/juzgados']);
       },
-      error: () => this.submitting.set(false)
+      error: (err) => {
+        this.submitted = false;
+        this.submitting.set(false);
+        if (err.errors) {
+          mapBackendErrors(this.form, err.errors);
+          scrollToFirstError();
+        }
+      }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.breadcrumbService.reset();
   }
 
   isInvalid(field: string): boolean {
     const ctrl = this.form.get(field);
     return !!(ctrl && ctrl.invalid && ctrl.touched);
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.form.dirty && !this.submitted;
   }
 }

@@ -1,4 +1,4 @@
-import { Component, Injectable, inject, signal, OnInit, DestroyRef } from '@angular/core';
+import { Component, Injectable, inject, signal, OnInit, DestroyRef, effect } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -104,22 +104,32 @@ export class TicketAsignarDialogComponent implements OnInit {
   readonly loadingTecnicos = signal(true);
   readonly submitting = signal(false);
 
-  form!: FormGroup;
+  form: FormGroup = this.fb.group({
+    tecnicoId: ['', Validators.required]
+  });
+
+  constructor() {
+    effect(() => {
+      const dialogType = this.dialogService.dialogType();
+      const ticket = this.dialogService.ticket();
+
+      if (dialogType === 'asignar' || dialogType === 'reasignar') {
+        this.form.reset({
+          tecnicoId: ticket?.tecnicoId?.toString() ?? ''
+        });
+        this.form.markAsPristine();
+        this.form.markAsUntouched();
+        this.submitting.set(false);
+      }
+    });
+  }
 
   ngOnInit(): void {
-    this.form = this.fb.group({
-      tecnicoId: ['', Validators.required]
-    });
-
     this.usuarioService.tecnicosActivos().pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: data => {
-        const ticket = this.dialogService.ticket();
         this.tecnicos.set(data);
-        if (ticket?.tecnicoId) {
-          this.form.patchValue({ tecnicoId: ticket.tecnicoId.toString() });
-        }
         this.loadingTecnicos.set(false);
       },
       error: () => {

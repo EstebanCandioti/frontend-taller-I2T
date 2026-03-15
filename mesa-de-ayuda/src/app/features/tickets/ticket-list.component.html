@@ -179,4 +179,6 @@
   }
 }
 
-<app-ticket-asignar-dialog />
+@if (isAdminOrOperario()) {
+  <app-ticket-asignar-dialog />
+}

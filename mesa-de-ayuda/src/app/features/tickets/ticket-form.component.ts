@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, DestroyRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, DestroyRef } from '@angular/core';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LowerCasePipe } from '@angular/common';
@@ -8,9 +8,12 @@ import { TicketService } from '../../core/services/ticket.service';
 import { JuzgadoService } from '../../core/services/juzgado.service';
 import { HardwareService } from '../../core/services/hardware.service';
 import { ToastService } from '../../core/services/toast.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { TicketResponse, JuzgadoResponse, HardwareResponse } from '../../core/models';
+import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
 
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { mapBackendErrors, scrollToFirstError } from '../../core/utils/form-error-mapper';
 
 @Component({
   selector: 'app-ticket-form',
@@ -19,7 +22,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
   templateUrl: './ticket-form.component.html',
   styleUrl: './ticket-form.component.scss'
 })
-export class TicketFormComponent implements OnInit {
+export class TicketFormComponent implements OnInit, OnDestroy, HasUnsavedChanges {
   private readonly fb = inject(FormBuilder);
   private readonly ticketService = inject(TicketService);
   private readonly juzgadoService = inject(JuzgadoService);
@@ -28,6 +31,7 @@ export class TicketFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly breadcrumbService = inject(BreadcrumbService);
 
   // Estado
   readonly loading = signal(false);
@@ -45,6 +49,7 @@ export class TicketFormComponent implements OnInit {
   readonly tiposRequerimiento = ['Hardware', 'Software', 'Red', 'Otro'];
 
   form!: FormGroup;
+  submitted = false;
 
   ngOnInit(): void {
     this.buildForm();
@@ -83,10 +88,12 @@ export class TicketFormComponent implements OnInit {
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      scrollToFirstError();
       return;
     }
 
     this.submitting.set(true);
+    this.submitted = true;
     const dto = this.buildDto();
 
     const request$ = this.isEdit()
@@ -101,8 +108,13 @@ export class TicketFormComponent implements OnInit {
         this.form.markAsPristine();
         this.router.navigate(['/tickets', ticket.id]);
       },
-      error: () => {
+      error: (err) => {
+        this.submitted = false;
         this.submitting.set(false);
+        if (err.errors) {
+          mapBackendErrors(this.form, err.errors);
+          scrollToFirstError();
+        }
       }
     });
   }
@@ -112,8 +124,12 @@ export class TicketFormComponent implements OnInit {
     return !!control && control.hasError(error) && control.touched;
   }
 
-  isDirty(): boolean {
-    return this.form.dirty;
+  ngOnDestroy(): void {
+    this.breadcrumbService.reset();
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.form.dirty && !this.submitted;
   }
 
   private buildForm(): void {
@@ -167,6 +183,7 @@ export class TicketFormComponent implements OnInit {
         }
 
         this.ticketOriginal = ticket;
+        this.breadcrumbService.setLabel(ticket.titulo);
 
         // Cargar hardware del juzgado antes de setear el form
         if (ticket.juzgadoId) {

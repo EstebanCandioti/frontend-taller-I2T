@@ -17,7 +17,6 @@
 
   &:hover {
     color: var(--primary);
-    text-decoration: none;
   }
 }
 
@@ -87,29 +86,6 @@
   }
 }
 
-.contrato-badge {
-  display: inline-flex;
-  padding: 0.0625rem 0.5rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-
-  &.vigente {
-    background: var(--success-light);
-    color: var(--success);
-  }
-
-  &.vencido {
-    background: var(--error-light);
-    color: var(--error);
-  }
-}
-
-.contrato-fecha {
-  font-size: 0.8125rem;
-  color: var(--gray-400);
-}
-
 .detail-section {
   margin-top: 1.5rem;
   padding-top: 1.25rem;
@@ -120,7 +96,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--gray-700);
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.75rem;
 }
 
 .detail-text {
@@ -131,13 +107,97 @@
   margin: 0;
 }
 
-.software-list {
+// Licencias
+.licencias-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.licencias-numbers {
+  display: flex;
+  gap: 2rem;
+}
+
+.licencia-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.text-danger {
+  color: var(--error) !important;
+}
+
+.licencias-bar-lg {
+  height: 10px;
+  background: var(--gray-100);
+  border-radius: 5px;
+  overflow: hidden;
+  max-width: 400px;
+}
+
+.licencias-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.3s ease;
+
+  &.normal {
+    background: var(--success);
+  }
+  &.alto {
+    background: var(--warning);
+  }
+  &.critico {
+    background: var(--error);
+  }
+}
+
+.licencias-pct {
+  font-size: 0.8125rem;
+  color: var(--gray-500);
+}
+
+// Tags
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  background: var(--primary-50, #e8edf2);
+  color: var(--gray-800);
+  border: 1px solid var(--gray-200);
+  border-radius: 1rem;
+  font-size: 0.8125rem;
+}
+
+// Hardware list
+.hw-list {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.software-item {
+.hw-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -154,22 +214,43 @@
   }
 }
 
-.software-name {
+.hw-inventory {
   font-weight: 600;
   color: var(--primary);
   font-size: 0.875rem;
+  white-space: nowrap;
 }
 
-.software-provider {
+.hw-desc {
   font-size: 0.875rem;
   color: var(--gray-700);
   flex: 1;
 }
 
-.software-arrow {
+.hw-juzgado {
+  font-size: 0.8125rem;
+  color: var(--gray-400);
+  white-space: nowrap;
+}
+
+.hw-arrow {
   font-family: 'Material Symbols Outlined';
   font-size: 1.125rem;
   color: var(--gray-300);
+}
+
+.btn-toggle-hardware {
+  margin-top: 8px;
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  padding: 4px 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 // Buttons

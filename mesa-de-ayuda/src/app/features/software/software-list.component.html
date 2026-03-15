@@ -67,7 +67,7 @@
         </thead>
         <tbody>
           @for (sw of software(); track sw.id) {
-            <tr class="clickable-row" (click)="router.navigate(['/software', sw.id, 'editar'])">
+            <tr class="clickable-row" (click)="router.navigate(['/software', sw.id])">
               <td class="td-bold">{{ sw.nombre }}</td>
               <td>{{ sw.proveedor }}</td>
               <td>

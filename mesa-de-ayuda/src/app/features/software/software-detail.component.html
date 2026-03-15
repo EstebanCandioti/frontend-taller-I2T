@@ -1,0 +1,121 @@
+@if (loading()) {
+  <app-loading-spinner message="Cargando detalle..." />
+} @else if (sw(); as s) {
+  <div class="page-header">
+    <div>
+      <a routerLink="/software" class="back-link">
+        <span class="material-icon">arrow_back</span>
+        Volver al listado
+      </a>
+      <h1 class="page-title">{{ s.nombre }}</h1>
+      <p class="page-subtitle">{{ s.proveedor }}</p>
+    </div>
+    <div class="page-actions">
+      <a [routerLink]="['/software', s.id, 'editar']" class="btn btn-primary">
+        <span class="material-icon">edit</span>
+        Editar
+      </a>
+      <button class="btn btn-danger" (click)="onEliminar()">
+        <span class="material-icon">delete</span>
+        Eliminar
+      </button>
+    </div>
+  </div>
+
+  <div class="detail-card">
+    <div class="detail-grid">
+      <div class="detail-item">
+        <span class="detail-label">Nombre</span>
+        <span class="detail-value">{{ s.nombre }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Proveedor</span>
+        <span class="detail-value">{{ s.proveedor }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Contrato</span>
+        <span class="detail-value">
+          <a [routerLink]="['/contratos', s.contratoId]" class="detail-link">
+            {{ s.contratoNombre }}
+          </a>
+        </span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Fecha de Vencimiento</span>
+        <span class="detail-value">
+          {{ s.fechaVencimiento ? (s.fechaVencimiento | date:'dd/MM/yyyy') : 'Sin vencimiento' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Licencias -->
+    <div class="detail-section">
+      <h3 class="section-title">Licencias</h3>
+      <div class="licencias-detail">
+        <div class="licencias-numbers">
+          <div class="licencia-stat">
+            <span class="stat-value">{{ s.cantidadLicencias }}</span>
+            <span class="stat-label">Total</span>
+          </div>
+          <div class="licencia-stat">
+            <span class="stat-value">{{ s.licenciasEnUso }}</span>
+            <span class="stat-label">En uso</span>
+          </div>
+          <div class="licencia-stat">
+            <span class="stat-value" [class.text-danger]="s.licenciasDisponibles === 0">
+              {{ s.licenciasDisponibles }}
+            </span>
+            <span class="stat-label">Disponibles</span>
+          </div>
+        </div>
+        <div class="licencias-bar-lg">
+          <div class="licencias-fill" [class]="licenciaClass()"
+            [style.width.%]="licenciaPct()"></div>
+        </div>
+        <span class="licencias-pct">{{ licenciaPct() }}% utilizado</span>
+      </div>
+    </div>
+
+    <!-- Juzgados -->
+    @if (s.juzgados && s.juzgados.length > 0) {
+      <div class="detail-section">
+        <h3 class="section-title">Juzgados ({{ s.juzgados.length }})</h3>
+        <div class="tags-container">
+          @for (j of s.juzgados; track j.id) {
+            <span class="tag">{{ j.nombre }} — {{ j.fuero }}</span>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Hardware -->
+    @if (s.hardware && s.hardware.length > 0) {
+      <div class="detail-section hardware-section">
+        <h3 class="section-title">Hardware asociado ({{ s.hardware.length }})</h3>
+        <div class="hw-list">
+          @for (h of hardwareVisible(); track h.id) {
+            <a [routerLink]="['/hardware', h.id]" class="hw-item">
+              <span class="hw-inventory">{{ h.nroInventario }}</span>
+              <span class="hw-desc">{{ h.marca }} {{ h.modelo }}</span>
+              <span class="hw-juzgado">{{ h.juzgadoNombre }}</span>
+              <span class="material-icon hw-arrow">chevron_right</span>
+            </a>
+          }
+        </div>
+        @if (s.hardware.length > HARDWARE_VISIBLE_DEFAULT) {
+          <button class="btn-toggle-hardware" (click)="toggleHardware()">
+            {{ mostrarTodoHardware ? 'Mostrar menos' : 'Ver todos (' + hardwareOculto() + ' mas)' }}
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Observaciones -->
+    @if (s.observaciones) {
+      <div class="detail-section">
+        <h3 class="section-title">Observaciones</h3>
+        <p class="detail-text">{{ s.observaciones }}</p>
+      </div>
+    }
+  </div>
+}

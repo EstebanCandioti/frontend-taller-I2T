@@ -1,16 +1,19 @@
-import { Component, inject, signal, computed, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy, DestroyRef, HostListener } from '@angular/core';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject, debounceTime, distinctUntilChanged, switchMap, of, tap } from 'rxjs';
 
 import { SoftwareService } from '../../core/services/software.service';
 import { ContratoService } from '../../core/services/contrato.service';
 import { JuzgadoService } from '../../core/services/juzgado.service';
 import { HardwareService } from '../../core/services/hardware.service';
 import { ToastService } from '../../core/services/toast.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { ContratoResponse, JuzgadoResponse, HardwareResponse, SoftwareResponse } from '../../core/models';
+import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { mapBackendErrors, scrollToFirstError } from '../../core/utils/form-error-mapper';
 
 @Component({
   selector: 'app-software-form',
@@ -19,7 +22,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
   templateUrl: './software-form.component.html',
   styleUrl: './software-form.component.scss'
 })
-export class SoftwareFormComponent implements OnInit {
+export class SoftwareFormComponent implements OnInit, OnDestroy, HasUnsavedChanges {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -29,17 +32,26 @@ export class SoftwareFormComponent implements OnInit {
   private readonly hardwareService = inject(HardwareService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly breadcrumbService = inject(BreadcrumbService);
 
   readonly contratos = signal<ContratoResponse[]>([]);
   readonly juzgados = signal<JuzgadoResponse[]>([]);
-  readonly allHardware = signal<HardwareResponse[]>([]);
   readonly loading = signal(false);
   readonly submitting = signal(false);
 
   // Multi-select: juzgados seleccionados
   readonly selectedJuzgadoIds = signal<number[]>([]);
-  // Multi-select: hardware seleccionado
-  readonly selectedHardwareIds = signal<number[]>([]);
+
+  // Hardware: lista de objetos seleccionados
+  readonly selectedHardwareList = signal<HardwareResponse[]>([]);
+  readonly selectedHardwareIds = computed(() => this.selectedHardwareList().map(h => h.id));
+
+  // Busqueda de hardware
+  readonly hwSearchQuery = signal('');
+  readonly hwSearchResults = signal<HardwareResponse[]>([]);
+  readonly hwSearching = signal(false);
+  readonly hwSearchOpen = signal(false);
+  private readonly hwSearch$ = new Subject<string>();
 
   // Juzgados disponibles (no seleccionados aun)
   readonly availableJuzgados = computed(() => {
@@ -47,22 +59,10 @@ export class SoftwareFormComponent implements OnInit {
     return this.juzgados().filter(j => !selected.includes(j.id));
   });
 
-  // Hardware disponible (no seleccionado aun)
-  readonly availableHardware = computed(() => {
-    const selected = this.selectedHardwareIds();
-    return this.allHardware().filter(h => !selected.includes(h.id));
-  });
-
   // Objetos completos de juzgados seleccionados para mostrar tags
   readonly selectedJuzgadoObjects = computed(() => {
     const ids = this.selectedJuzgadoIds();
     return this.juzgados().filter(j => ids.includes(j.id));
-  });
-
-  // Objetos completos de hardware seleccionado para mostrar tags
-  readonly selectedHardwareObjects = computed(() => {
-    const ids = this.selectedHardwareIds();
-    return this.allHardware().filter(h => ids.includes(h.id));
   });
 
   // Licencias: cantidadLicencias actual del form
@@ -72,6 +72,7 @@ export class SoftwareFormComponent implements OnInit {
   isEditing = false;
   softwareId?: number;
   private editingSoftware?: SoftwareResponse;
+  submitted = false;
 
   form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(150)]],
@@ -81,6 +82,14 @@ export class SoftwareFormComponent implements OnInit {
     contratoId: ['', Validators.required],
     observaciones: ['']
   });
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.hw-search-wrapper')) {
+      this.hwSearchOpen.set(false);
+    }
+  }
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -93,6 +102,25 @@ export class SoftwareFormComponent implements OnInit {
     this.form.get('cantidadLicencias')!.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(val => this.cantidadLicencias.set(+(val || 1)));
+
+    // Stream de busqueda de hardware con debounce
+    this.hwSearch$.pipe(
+      debounceTime(350),
+      distinctUntilChanged(),
+      tap(() => this.hwSearching.set(true)),
+      switchMap(term => {
+        if (term.trim().length < 2) {
+          return of([]);
+        }
+        return this.hardwareService.listarTodos({ q: term }, 'nroInventario,asc', 20);
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(results => {
+      const selectedIds = this.selectedHardwareIds();
+      this.hwSearchResults.set(results.filter(h => !selectedIds.includes(h.id)));
+      this.hwSearching.set(false);
+      this.hwSearchOpen.set(true);
+    });
 
     // Cargar selects
     this.contratoService.listar().pipe(
@@ -109,13 +137,6 @@ export class SoftwareFormComponent implements OnInit {
       error: () => {}
     });
 
-    this.hardwareService.listarTodos().pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: data => this.allHardware.set(data),
-      error: () => {}
-    });
-
     if (this.isEditing) {
       this.loading.set(true);
       this.softwareService.obtenerPorId(this.softwareId!).pipe(
@@ -126,9 +147,9 @@ export class SoftwareFormComponent implements OnInit {
           this.licenciasEnUso.set(sw.licenciasEnUso);
           this.cantidadLicencias.set(sw.cantidadLicencias);
 
-          // Cargar ids seleccionados desde la respuesta
+          // Cargar objetos seleccionados desde la respuesta
           this.selectedJuzgadoIds.set(sw.juzgados?.map(j => j.id) || []);
-          this.selectedHardwareIds.set(sw.hardware?.map(h => h.id) || []);
+          this.selectedHardwareList.set(sw.hardware || []);
 
           this.form.patchValue({
             nombre: sw.nombre,
@@ -138,6 +159,8 @@ export class SoftwareFormComponent implements OnInit {
             contratoId: sw.contratoId.toString(),
             observaciones: sw.observaciones || ''
           });
+          this.breadcrumbService.setLabel(sw.nombre);
+          this.form.markAsPristine();
           this.loading.set(false);
         },
         error: () => {
@@ -163,28 +186,63 @@ export class SoftwareFormComponent implements OnInit {
     this.markFormDirty();
   }
 
-  // --- Hardware multi-select ---
-  addHardware(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const id = +select.value;
-    if (!id) return;
+  // --- Hardware search + select ---
+  onHwSearchInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.hwSearchQuery.set(value);
+    if (value.trim().length < 2) {
+      this.hwSearchResults.set([]);
+      this.hwSearchOpen.set(false);
+      return;
+    }
+    this.hwSearch$.next(value.trim());
+  }
 
+  onHwSearchFocus(): void {
+    if (this.hwSearchResults().length > 0) {
+      this.hwSearchOpen.set(true);
+    }
+  }
+
+  addHardwareFromSearch(hw: HardwareResponse): void {
     // Verificar licencias disponibles
     const currentSelected = this.selectedHardwareIds().length;
     const maxLicencias = this.cantidadLicencias();
     if (currentSelected >= maxLicencias) {
       this.toast.error(`No hay licencias disponibles. Maximo: ${maxLicencias}.`);
-      select.value = '';
       return;
     }
 
-    this.selectedHardwareIds.update(ids => [...ids, id]);
-    select.value = '';
+    this.selectedHardwareList.update(list => [...list, hw]);
+
+    // Auto-agregar juzgado si no esta en la lista
+    if (hw.juzgadoId && !this.selectedJuzgadoIds().includes(hw.juzgadoId)) {
+      this.selectedJuzgadoIds.update(ids => [...ids, hw.juzgadoId]);
+      // Asegurar que el juzgado existe en la lista maestra
+      const juzgadoExiste = this.juzgados().some(j => j.id === hw.juzgadoId);
+      if (!juzgadoExiste) {
+        this.juzgados.update(list => [...list, {
+          id: hw.juzgadoId,
+          nombre: hw.juzgadoNombre,
+          fuero: '',
+          ciudad: '',
+          edificio: '',
+          circunscripcionId: 0,
+          circunscripcionNombre: ''
+        }]);
+      }
+      this.toast.info(`Juzgado "${hw.juzgadoNombre}" agregado automaticamente.`);
+    }
+
+    // Limpiar busqueda
+    this.hwSearchQuery.set('');
+    this.hwSearchResults.set([]);
+    this.hwSearchOpen.set(false);
     this.markFormDirty();
   }
 
   removeHardware(id: number): void {
-    this.selectedHardwareIds.update(ids => ids.filter(i => i !== id));
+    this.selectedHardwareList.update(list => list.filter(h => h.id !== id));
     this.markFormDirty();
   }
 
@@ -195,10 +253,12 @@ export class SoftwareFormComponent implements OnInit {
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      scrollToFirstError();
       return;
     }
 
     this.submitting.set(true);
+    this.submitted = true;
     const val = this.form.getRawValue();
 
     const dto = {
@@ -234,16 +294,16 @@ export class SoftwareFormComponent implements OnInit {
           ).subscribe({
             next: () => {
               this.toast.success('Software actualizado correctamente.');
+              this.form.markAsPristine();
               this.router.navigate(['/software']);
             },
             error: () => {
               this.toast.error('Error al actualizar relaciones.');
+              this.submitted = false;
               this.submitting.set(false);
             }
           });
         } else {
-          // Al crear, si el backend ya procesa hardwareIds/juzgadoIds en el DTO, listo
-          // Si no, llamar endpoints dedicados con el id del nuevo software
           if (this.selectedHardwareIds().length > 0 || this.selectedJuzgadoIds().length > 0) {
             forkJoin([
               this.softwareService.actualizarHardware(sw.id, this.selectedHardwareIds()),
@@ -253,25 +313,43 @@ export class SoftwareFormComponent implements OnInit {
             ).subscribe({
               next: () => {
                 this.toast.success('Software registrado correctamente.');
+                this.form.markAsPristine();
                 this.router.navigate(['/software']);
               },
               error: () => {
                 this.toast.success('Software registrado. Algunas relaciones no se pudieron guardar.');
+                this.form.markAsPristine();
                 this.router.navigate(['/software']);
               }
             });
           } else {
             this.toast.success('Software registrado correctamente.');
+            this.form.markAsPristine();
             this.router.navigate(['/software']);
           }
         }
       },
-      error: () => this.submitting.set(false)
+      error: (err) => {
+        this.submitted = false;
+        this.submitting.set(false);
+        if (err.errors) {
+          mapBackendErrors(this.form, err.errors);
+          scrollToFirstError();
+        }
+      }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.breadcrumbService.reset();
   }
 
   isInvalid(field: string): boolean {
     const ctrl = this.form.get(field);
     return !!(ctrl && ctrl.invalid && ctrl.touched);
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.form.dirty && !this.submitted;
   }
 }

@@ -47,7 +47,7 @@
           <span class="material-icon">schedule</span>
         </div>
         <div class="card-body">
-          <span class="card-value">{{ contratosProximos().length }}</span>
+          <span class="card-value">{{ contratosProximos() }}</span>
           <span class="card-label">Contratos por Vencer</span>
         </div>
         <span class="material-icon card-arrow">arrow_forward</span>
@@ -58,7 +58,7 @@
           <span class="material-icon">event_busy</span>
         </div>
         <div class="card-body">
-          <span class="card-value">{{ contratosVencidos().length }}</span>
+          <span class="card-value">{{ contratosVencidos() }}</span>
           <span class="card-label">Contratos Vencidos</span>
         </div>
         <span class="material-icon card-arrow">arrow_forward</span>
@@ -80,8 +80,8 @@
           <span class="material-icon">apps</span>
         </div>
         <div class="card-body">
-          <span class="card-value">{{ licenciasInfo().disponibles }} / {{ licenciasInfo().total }}</span>
-          <span class="card-label">Licencias Disponibles</span>
+          <span class="card-value">{{ totalSoftware() }}</span>
+          <span class="card-label">Software Registrado</span>
         </div>
         <span class="material-icon card-arrow">arrow_forward</span>
       </a>
@@ -109,9 +109,9 @@
                 </tr>
               </thead>
               <tbody>
-                @for (tec of tecnicosCarga(); track tec.id) {
-                  <tr class="clickable-row" (click)="navigateTicketsTecnico(tec.id)">
-                    <td>{{ tec.nombre }}</td>
+                @for (tec of tecnicosCarga(); track tec.tecnicoId) {
+                  <tr class="clickable-row" (click)="navigateTicketsTecnico(tec.tecnicoId)">
+                    <td>{{ tec.nombreCompleto }}</td>
                     <td class="text-center">
                       <span class="count-badge badge-asignado">{{ tec.asignados }}</span>
                     </td>

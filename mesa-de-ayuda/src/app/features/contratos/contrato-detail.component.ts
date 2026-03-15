@@ -1,10 +1,11 @@
-import { Component, inject, signal, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, DestroyRef } from '@angular/core';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe, CurrencyPipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ContratoService } from '../../core/services/contrato.service';
 import { ToastService } from '../../core/services/toast.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { ConfirmDialogService } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { ContratoResponse } from '../../core/models';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
@@ -17,12 +18,13 @@ import { RenovarDialogComponent } from './renovar-dialog.component';
   templateUrl: './contrato-detail.component.html',
   styleUrl: './contrato-detail.component.scss'
 })
-export class ContratoDetailComponent implements OnInit {
+export class ContratoDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   readonly router = inject(Router);
   private readonly contratoService = inject(ContratoService);
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly breadcrumbService = inject(BreadcrumbService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly contrato = signal<ContratoResponse | null>(null);
@@ -41,6 +43,7 @@ export class ContratoDetailComponent implements OnInit {
     ).subscribe({
       next: data => {
         this.contrato.set(data);
+        this.breadcrumbService.setLabel(data.nombre);
         this.loading.set(false);
       },
       error: () => {
@@ -48,6 +51,10 @@ export class ContratoDetailComponent implements OnInit {
         this.router.navigate(['/contratos']);
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.breadcrumbService.reset();
   }
 
   estadoContrato(c: ContratoResponse): string {

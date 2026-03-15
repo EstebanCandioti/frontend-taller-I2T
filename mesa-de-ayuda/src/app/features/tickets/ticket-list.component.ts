@@ -169,6 +169,9 @@ export class TicketListComponent implements OnInit {
   }
 
   private cargarDatosAuxiliares(): void {
+    // Tecnico no necesita filtros de juzgado/tecnico (y no tiene permiso en esos endpoints)
+    if (!this.isAdminOrOperario()) return;
+
     this.juzgadoService.listar().pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({

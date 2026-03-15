@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed, DestroyRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, DestroyRef } from '@angular/core';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -7,8 +7,9 @@ import { TicketService } from '../../core/services/ticket.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { UsuarioService } from '../../core/services/usuario.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { TicketResponse } from '../../core/models';
-import { TicketDialogService, TicketCerrarDialogComponent } from './dialogs/ticket-dialogs.component';
+import { TicketDialogService, TicketAsignarDialogComponent, TicketCerrarDialogComponent } from './dialogs/ticket-dialogs.component';
 
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
@@ -24,16 +25,17 @@ interface TimelineStep {
 @Component({
   selector: 'app-ticket-detail',
   standalone: true,
-  imports: [RouterLink, DatePipe, StatusBadgeComponent, LoadingSpinnerComponent, TicketCerrarDialogComponent],
+  imports: [RouterLink, DatePipe, StatusBadgeComponent, LoadingSpinnerComponent, TicketAsignarDialogComponent, TicketCerrarDialogComponent],
   templateUrl: './ticket-detail.component.html',
   styleUrl: './ticket-detail.component.scss'
 })
-export class TicketDetailComponent implements OnInit {
+export class TicketDetailComponent implements OnInit, OnDestroy {
   private readonly ticketService = inject(TicketService);
   private readonly usuarioService = inject(UsuarioService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly ticketDialogService = inject(TicketDialogService);
+  private readonly breadcrumbService = inject(BreadcrumbService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
@@ -113,6 +115,26 @@ export class TicketDetailComponent implements OnInit {
     });
   }
 
+  async asignarTicket(): Promise<void> {
+    const t = this.ticket();
+    if (!t) return;
+
+    const result = await this.ticketDialogService.open('asignar', t);
+    if (result) {
+      this.recargar();
+    }
+  }
+
+  async reasignarTicket(): Promise<void> {
+    const t = this.ticket();
+    if (!t) return;
+
+    const result = await this.ticketDialogService.open('reasignar', t);
+    if (result) {
+      this.recargar();
+    }
+  }
+
   async cerrarTicket(): Promise<void> {
     const t = this.ticket();
     if (!t) return;
@@ -130,6 +152,7 @@ export class TicketDetailComponent implements OnInit {
     ).subscribe({
       next: ticket => {
         this.ticket.set(ticket);
+        this.breadcrumbService.setLabel(ticket.titulo);
         this.cargarTelefonoCreador(ticket.creadoPorId);
         this.cargarTelefonoTecnico(ticket.tecnicoId);
         this.loading.set(false);
@@ -154,6 +177,10 @@ export class TicketDetailComponent implements OnInit {
         this.creadorTelefono.set(null);
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.breadcrumbService.reset();
   }
 
   private cargarTelefonoTecnico(usuarioId?: number): void {

@@ -1,12 +1,15 @@
-import { Component, inject, signal, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, DestroyRef } from '@angular/core';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { UsuarioService } from '../../core/services/usuario.service';
 import { ToastService } from '../../core/services/toast.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { RolResponse } from '../../core/models';
+import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { mapBackendErrors, scrollToFirstError } from '../../core/utils/form-error-mapper';
 
 @Component({
   selector: 'app-usuario-form',
@@ -15,13 +18,14 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
   templateUrl: './usuario-form.component.html',
   styleUrl: './usuario-form.component.scss'
 })
-export class UsuarioFormComponent implements OnInit {
+export class UsuarioFormComponent implements OnInit, OnDestroy, HasUnsavedChanges {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly usuarioService = inject(UsuarioService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly breadcrumbService = inject(BreadcrumbService);
 
   readonly roles = signal<RolResponse[]>([]);
   readonly loading = signal(false);
@@ -31,6 +35,7 @@ export class UsuarioFormComponent implements OnInit {
 
   isEditing = false;
   usuarioId?: number;
+  submitted = false;
 
   form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(100)]],
@@ -73,6 +78,8 @@ export class UsuarioFormComponent implements OnInit {
             telefono: u.telefono || '',
             rolId: u.rolId.toString()
           });
+          this.breadcrumbService.setLabel(u.nombre + ' ' + u.apellido);
+          this.form.markAsPristine();
           this.loading.set(false);
           this.loadingData.set(false);
         },
@@ -93,10 +100,12 @@ export class UsuarioFormComponent implements OnInit {
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      scrollToFirstError();
       return;
     }
 
     this.submitting.set(true);
+    this.submitted = true;
     const val = this.form.getRawValue();
 
     const dto: any = {
@@ -121,10 +130,16 @@ export class UsuarioFormComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.toast.success(this.isEditing ? 'Usuario actualizado correctamente.' : 'Usuario creado correctamente.');
+        this.form.markAsPristine();
         this.router.navigate(['/usuarios']);
       },
-      error: () => {
+      error: (err) => {
+        this.submitted = false;
         this.submitting.set(false);
+        if (err.errors) {
+          mapBackendErrors(this.form, err.errors);
+          scrollToFirstError();
+        }
       }
     });
   }
@@ -148,9 +163,18 @@ export class UsuarioFormComponent implements OnInit {
       };
       return labels[field] || 'Campo obligatorio.';
     }
+    if (ctrl.errors['serverError']) return ctrl.errors['serverError'];
     if (ctrl.errors['email']) return 'Formato de email invalido.';
     if (ctrl.errors['minlength']) return `Minimo ${ctrl.errors['minlength'].requiredLength} caracteres.`;
     if (ctrl.errors['maxlength']) return `Maximo ${ctrl.errors['maxlength'].requiredLength} caracteres.`;
     return 'Campo invalido.';
+  }
+
+  ngOnDestroy(): void {
+    this.breadcrumbService.reset();
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.form.dirty && !this.submitted;
   }
 }

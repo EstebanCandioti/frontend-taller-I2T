@@ -5,6 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { CircunscripcionService } from '../../core/services/circunscripcion.service';
 import { ToastService } from '../../core/services/toast.service';
+import { scrollToFirstError } from '../../core/utils/form-error-mapper';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
@@ -93,7 +94,7 @@ export class CircunscripcionFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) { this.form.markAllAsTouched(); scrollToFirstError(); return; }
 
     this.submitting.set(true);
     const val = this.form.getRawValue();

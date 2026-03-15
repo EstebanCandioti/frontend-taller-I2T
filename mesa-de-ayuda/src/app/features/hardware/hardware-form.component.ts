@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, DestroyRef } from '@angular/core';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -7,9 +7,12 @@ import { HardwareService } from '../../core/services/hardware.service';
 import { JuzgadoService } from '../../core/services/juzgado.service';
 import { ContratoService } from '../../core/services/contrato.service';
 import { ToastService } from '../../core/services/toast.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { JuzgadoResponse, ContratoResponse } from '../../core/models';
 import { HARDWARE_CLASSES } from '../../core/models/hardware.model';
+import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { mapBackendErrors, scrollToFirstError } from '../../core/utils/form-error-mapper';
 
 @Component({
   selector: 'app-hardware-form',
@@ -18,7 +21,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
   templateUrl: './hardware-form.component.html',
   styleUrl: './hardware-form.component.scss'
 })
-export class HardwareFormComponent implements OnInit {
+export class HardwareFormComponent implements OnInit, OnDestroy, HasUnsavedChanges {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -27,6 +30,7 @@ export class HardwareFormComponent implements OnInit {
   private readonly contratoService = inject(ContratoService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly breadcrumbService = inject(BreadcrumbService);
 
   readonly juzgados = signal<JuzgadoResponse[]>([]);
   readonly contratos = signal<ContratoResponse[]>([]);
@@ -38,6 +42,7 @@ export class HardwareFormComponent implements OnInit {
 
   isEditing = false;
   hardwareId?: number;
+  submitted = false;
 
   form = this.fb.group({
     nroInventario: ['', [Validators.required, Validators.maxLength(50)]],
@@ -90,8 +95,10 @@ export class HardwareFormComponent implements OnInit {
             contratoId: hw.contratoId?.toString() || '',
             observaciones: hw.observaciones || ''
           });
+          this.breadcrumbService.setLabel(hw.nroInventario + ' — ' + hw.marca + ' ' + hw.modelo);
           this.loading.set(false);
           this.loadingData.set(false);
+          this.form.markAsPristine();
         },
         error: () => {
           this.toast.error('No se pudo cargar el hardware.');
@@ -106,10 +113,12 @@ export class HardwareFormComponent implements OnInit {
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      scrollToFirstError();
       return;
     }
 
     this.submitting.set(true);
+    this.submitted = true;
     const val = this.form.getRawValue();
 
     const dto = {
@@ -133,16 +142,30 @@ export class HardwareFormComponent implements OnInit {
     ).subscribe({
       next: (result) => {
         this.toast.success(this.isEditing ? 'Hardware actualizado correctamente.' : 'Hardware registrado correctamente.');
+        this.form.markAsPristine();
         this.router.navigate(['/hardware', result.id]);
       },
-      error: () => {
+      error: (err) => {
+        this.submitted = false;
         this.submitting.set(false);
+        if (err.errors) {
+          mapBackendErrors(this.form, err.errors);
+          scrollToFirstError();
+        }
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.breadcrumbService.reset();
   }
 
   isInvalid(field: string): boolean {
     const ctrl = this.form.get(field);
     return !!(ctrl && ctrl.invalid && ctrl.touched);
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.form.dirty && !this.submitted;
   }
 }

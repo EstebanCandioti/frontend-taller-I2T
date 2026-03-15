@@ -20,6 +20,9 @@
     @if (isAdminOrOperario()) {
       <div class="header-actions">
         @if (t.estado === 'SOLICITADO') {
+          <button class="btn btn-primary" (click)="asignarTicket()">
+            <span class="material-icon">person_add</span> Asignar
+          </button>
           <a [routerLink]="['/tickets', t.id, 'editar']" class="btn btn-secondary">
             <span class="material-icon">edit</span> Editar
           </a>
@@ -30,6 +33,9 @@
           </button>
         }
         @if (t.estado === 'ASIGNADO' || t.estado === 'EN_CURSO') {
+          <button class="btn btn-secondary" (click)="reasignarTicket()">
+            <span class="material-icon">swap_horiz</span> Reasignar
+          </button>
           <button class="btn btn-success" (click)="cerrarTicket()">
             <span class="material-icon">check_circle</span> Cerrar Ticket
           </button>
@@ -167,4 +173,5 @@
   </div>
 }
 
+<app-ticket-asignar-dialog />
 <app-ticket-cerrar-dialog />

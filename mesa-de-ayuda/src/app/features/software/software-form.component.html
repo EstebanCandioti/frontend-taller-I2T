@@ -15,8 +15,11 @@
         <input id="nombre" formControlName="nombre" class="form-control"
           [class.invalid]="isInvalid('nombre')" maxlength="150"
           placeholder="Ej: Microsoft Office 365">
-        @if (isInvalid('nombre')) {
+        @if (form.get('nombre')?.hasError('required') && form.get('nombre')?.touched) {
           <span class="form-error">El nombre es obligatorio.</span>
+        }
+        @if (form.get('nombre')?.hasError('serverError')) {
+          <span class="form-error">{{ form.get('nombre')?.errors?.['serverError'] }}</span>
         }
       </div>
 
@@ -27,8 +30,11 @@
         <input id="proveedor" formControlName="proveedor" class="form-control"
           [class.invalid]="isInvalid('proveedor')" maxlength="150"
           placeholder="Ej: Microsoft">
-        @if (isInvalid('proveedor')) {
+        @if (form.get('proveedor')?.hasError('required') && form.get('proveedor')?.touched) {
           <span class="form-error">El proveedor es obligatorio.</span>
+        }
+        @if (form.get('proveedor')?.hasError('serverError')) {
+          <span class="form-error">{{ form.get('proveedor')?.errors?.['serverError'] }}</span>
         }
       </div>
     </div>
@@ -40,14 +46,20 @@
         </label>
         <input id="cantidadLicencias" type="number" formControlName="cantidadLicencias" class="form-control"
           [class.invalid]="isInvalid('cantidadLicencias')" min="1">
-        @if (isInvalid('cantidadLicencias')) {
+        @if (form.get('cantidadLicencias')?.hasError('required') && form.get('cantidadLicencias')?.touched) {
           <span class="form-error">Debe ser al menos 1.</span>
+        }
+        @if (form.get('cantidadLicencias')?.hasError('serverError')) {
+          <span class="form-error">{{ form.get('cantidadLicencias')?.errors?.['serverError'] }}</span>
         }
       </div>
 
       <div class="form-group">
         <label for="fechaVencimiento" class="form-label">Fecha de Vencimiento</label>
         <input id="fechaVencimiento" type="date" formControlName="fechaVencimiento" class="form-control">
+        @if (form.get('fechaVencimiento')?.hasError('serverError')) {
+          <span class="form-error">{{ form.get('fechaVencimiento')?.errors?.['serverError'] }}</span>
+        }
       </div>
     </div>
 
@@ -63,8 +75,11 @@
             <option [value]="c.id">{{ c.nombre }} ({{ c.proveedor }})</option>
           }
         </select>
-        @if (isInvalid('contratoId')) {
+        @if (form.get('contratoId')?.hasError('required') && form.get('contratoId')?.touched) {
           <span class="form-error">El contrato es obligatorio para software.</span>
+        }
+        @if (form.get('contratoId')?.hasError('serverError')) {
+          <span class="form-error">{{ form.get('contratoId')?.errors?.['serverError'] }}</span>
         }
       </div>
 
@@ -94,26 +109,51 @@
       }
     </div>
 
-    <!-- Hardware multi-select -->
+    <!-- Hardware busqueda -->
     <div class="form-group">
       <label class="form-label">Hardware asociado</label>
-      <select class="form-control" (change)="addHardware($event)">
-        <option value="">— Agregar hardware —</option>
-        @for (h of availableHardware(); track h.id) {
-          <option [value]="h.id">{{ h.nroInventario }} — {{ h.marca }} {{ h.modelo }}</option>
+      <div class="hw-search-wrapper">
+        <div class="hw-search-input-row">
+          <input type="text" class="form-control"
+            placeholder="Buscar por nro. inventario, marca, modelo..."
+            [value]="hwSearchQuery()"
+            (input)="onHwSearchInput($event)"
+            (focus)="onHwSearchFocus()"
+            autocomplete="off">
+          @if (hwSearching()) {
+            <span class="hw-search-spinner"></span>
+          }
+        </div>
+        @if (hwSearchOpen() && hwSearchResults().length > 0) {
+          <ul class="hw-search-results">
+            @for (h of hwSearchResults(); track h.id) {
+              <li class="hw-search-item" (click)="addHardwareFromSearch(h)">
+                <span class="hw-item-inventory">{{ h.nroInventario }}</span>
+                <span class="hw-item-desc">{{ h.marca }} {{ h.modelo }}</span>
+                <span class="hw-item-juzgado">{{ h.juzgadoNombre }}</span>
+              </li>
+            }
+          </ul>
         }
-      </select>
-      @if (selectedHardwareIds().length > 0) {
+        @if (hwSearchOpen() && !hwSearching() && hwSearchResults().length === 0 && hwSearchQuery().length >= 2) {
+          <div class="hw-search-results hw-search-empty">
+            Sin resultados para "{{ hwSearchQuery() }}"
+          </div>
+        }
+      </div>
+      @if (selectedHardwareList().length > 0) {
         <div class="tags-container">
-          @for (h of selectedHardwareObjects(); track h.id) {
-            <span class="tag">
-              {{ h.nroInventario }} — {{ h.marca }} {{ h.modelo }}
+          @for (h of selectedHardwareList(); track h.id) {
+            <span class="tag tag-hw">
+              <span class="tag-inventory">{{ h.nroInventario }}</span>
+              {{ h.marca }} {{ h.modelo }}
+              <span class="tag-juzgado">{{ h.juzgadoNombre }}</span>
               <button type="button" class="tag-remove" (click)="removeHardware(h.id)" title="Quitar">&times;</button>
             </span>
           }
         </div>
         <span class="form-hint">
-          {{ selectedHardwareIds().length }} de {{ cantidadLicencias() }} licencias asignadas a hardware.
+          {{ selectedHardwareList().length }} de {{ cantidadLicencias() }} licencias asignadas a hardware.
         </span>
       }
     </div>

@@ -15,8 +15,11 @@
         <input id="nroInventario" formControlName="nroInventario" class="form-control"
           [class.invalid]="isInvalid('nroInventario')" maxlength="50"
           placeholder="Ej: INV-2024-001">
-        @if (isInvalid('nroInventario')) {
+        @if (form.get('nroInventario')?.hasError('required') && form.get('nroInventario')?.touched) {
           <span class="form-error">El numero de inventario es obligatorio.</span>
+        }
+        @if (form.get('nroInventario')?.hasError('serverError')) {
+          <span class="form-error">{{ form.get('nroInventario')?.errors?.['serverError'] }}</span>
         }
       </div>
 
@@ -31,8 +34,11 @@
             <option [value]="c">{{ c }}</option>
           }
         </select>
-        @if (isInvalid('clase')) {
+        @if (form.get('clase')?.hasError('required') && form.get('clase')?.touched) {
           <span class="form-error">Seleccione una clase de hardware.</span>
+        }
+        @if (form.get('clase')?.hasError('serverError')) {
+          <span class="form-error">{{ form.get('clase')?.errors?.['serverError'] }}</span>
         }
       </div>
     </div>
@@ -45,8 +51,11 @@
         <input id="marca" formControlName="marca" class="form-control"
           [class.invalid]="isInvalid('marca')" maxlength="100"
           placeholder="Ej: HP, Dell, Epson...">
-        @if (isInvalid('marca')) {
+        @if (form.get('marca')?.hasError('required') && form.get('marca')?.touched) {
           <span class="form-error">La marca es obligatoria.</span>
+        }
+        @if (form.get('marca')?.hasError('serverError')) {
+          <span class="form-error">{{ form.get('marca')?.errors?.['serverError'] }}</span>
         }
       </div>
 
@@ -57,8 +66,11 @@
         <input id="modelo" formControlName="modelo" class="form-control"
           [class.invalid]="isInvalid('modelo')" maxlength="150"
           placeholder="Ej: ProDesk 400 G7">
-        @if (isInvalid('modelo')) {
+        @if (form.get('modelo')?.hasError('required') && form.get('modelo')?.touched) {
           <span class="form-error">El modelo es obligatorio.</span>
+        }
+        @if (form.get('modelo')?.hasError('serverError')) {
+          <span class="form-error">{{ form.get('modelo')?.errors?.['serverError'] }}</span>
         }
       </div>
     </div>
@@ -68,6 +80,9 @@
         <label for="nroSerie" class="form-label">Nro. Serie</label>
         <input id="nroSerie" formControlName="nroSerie" class="form-control"
           maxlength="100" placeholder="Opcional">
+        @if (form.get('nroSerie')?.hasError('serverError')) {
+          <span class="form-error">{{ form.get('nroSerie')?.errors?.['serverError'] }}</span>
+        }
       </div>
 
       <div class="form-group">
@@ -77,8 +92,11 @@
         <input id="ubicacionFisica" formControlName="ubicacionFisica" class="form-control"
           [class.invalid]="isInvalid('ubicacionFisica')" maxlength="200"
           placeholder="Ej: Piso 3, Oficina 301">
-        @if (isInvalid('ubicacionFisica')) {
+        @if (form.get('ubicacionFisica')?.hasError('required') && form.get('ubicacionFisica')?.touched) {
           <span class="form-error">La ubicacion fisica es obligatoria.</span>
+        }
+        @if (form.get('ubicacionFisica')?.hasError('serverError')) {
+          <span class="form-error">{{ form.get('ubicacionFisica')?.errors?.['serverError'] }}</span>
         }
       </div>
     </div>
@@ -95,8 +113,11 @@
             <option [value]="j.id">{{ j.nombre }}</option>
           }
         </select>
-        @if (isInvalid('juzgadoId')) {
+        @if (form.get('juzgadoId')?.hasError('required') && form.get('juzgadoId')?.touched) {
           <span class="form-error">Debe seleccionar un juzgado.</span>
+        }
+        @if (form.get('juzgadoId')?.hasError('serverError')) {
+          <span class="form-error">{{ form.get('juzgadoId')?.errors?.['serverError'] }}</span>
         }
       </div>
 

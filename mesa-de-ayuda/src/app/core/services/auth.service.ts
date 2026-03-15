@@ -45,7 +45,7 @@ export class AuthService {
               id: loginData.usuarioId,
               nombreCompleto: loginData.nombreCompleto,
               email: loginData.email,
-              rol: loginData.rol as Rol,
+              rol: this.normalizeRol(loginData.rol),
               token: loginData.token
             };
             this.setUser(user);
@@ -110,5 +110,11 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+
+  /** Normaliza el rol quitando tildes para que coincida con el tipo Rol del frontend */
+  private normalizeRol(rol: string): Rol {
+    const normalized = rol.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return normalized as Rol;
   }
 }

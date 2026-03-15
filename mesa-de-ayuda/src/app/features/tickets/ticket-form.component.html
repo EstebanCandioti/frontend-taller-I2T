@@ -17,7 +17,7 @@
           type="text"
           formControlName="titulo"
           class="form-control"
-          [class.invalid]="hasError('titulo', 'required') || hasError('titulo', 'maxlength')"
+          [class.invalid]="hasError('titulo', 'required') || hasError('titulo', 'maxlength') || hasError('titulo', 'serverError')"
           placeholder="Descripcion breve del problema" />
         <div class="form-hint-row">
           <span class="char-counter" [class.warn]="tituloLength > 180">
@@ -30,6 +30,9 @@
         @if (hasError('titulo', 'maxlength')) {
           <span class="form-error">Maximo 200 caracteres.</span>
         }
+        @if (hasError('titulo', 'serverError')) {
+          <span class="form-error">{{ form.get('titulo')?.errors?.['serverError'] }}</span>
+        }
       </div>
 
       <!-- Descripcion -->
@@ -41,11 +44,14 @@
           id="descripcion"
           formControlName="descripcion"
           class="form-control textarea"
-          [class.invalid]="hasError('descripcion', 'required')"
+          [class.invalid]="hasError('descripcion', 'required') || hasError('descripcion', 'serverError')"
           rows="4"
           placeholder="Detalle del problema o solicitud"></textarea>
         @if (hasError('descripcion', 'required')) {
           <span class="form-error">La descripcion es obligatoria.</span>
+        }
+        @if (hasError('descripcion', 'serverError')) {
+          <span class="form-error">{{ form.get('descripcion')?.errors?.['serverError'] }}</span>
         }
       </div>
 
@@ -80,7 +86,7 @@
           id="juzgadoId"
           formControlName="juzgadoId"
           class="form-control"
-          [class.invalid]="hasError('juzgadoId', 'required')">
+          [class.invalid]="hasError('juzgadoId', 'required') || hasError('juzgadoId', 'serverError')">
           <option [ngValue]="null">— Seleccionar juzgado —</option>
           @for (j of juzgados(); track j.id) {
             <option [ngValue]="j.id">{{ j.nombre }}</option>
@@ -88,6 +94,9 @@
         </select>
         @if (hasError('juzgadoId', 'required')) {
           <span class="form-error">Debe seleccionar un juzgado.</span>
+        }
+        @if (hasError('juzgadoId', 'serverError')) {
+          <span class="form-error">{{ form.get('juzgadoId')?.errors?.['serverError'] }}</span>
         }
       </div>
 

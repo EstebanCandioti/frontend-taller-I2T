@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
+import { unsavedChangesGuard } from './core/guards/unsaved-changes.guard';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 
 export const routes: Routes = [
@@ -24,6 +25,7 @@ export const routes: Routes = [
       },
       {
         path: 'tickets/nuevo',
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () => import('./features/tickets/ticket-form.component').then(m => m.TicketFormComponent)
       },
       {
@@ -32,6 +34,7 @@ export const routes: Routes = [
       },
       {
         path: 'tickets/:id/editar',
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () => import('./features/tickets/ticket-form.component').then(m => m.TicketFormComponent)
       },
       // Hardware (Admin + Operario)
@@ -43,6 +46,7 @@ export const routes: Routes = [
       {
         path: 'hardware/nuevo',
         canActivate: [roleGuard('Admin', 'Operario')],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () => import('./features/hardware/hardware-form.component').then(m => m.HardwareFormComponent)
       },
       {
@@ -53,6 +57,7 @@ export const routes: Routes = [
       {
         path: 'hardware/:id/editar',
         canActivate: [roleGuard('Admin', 'Operario')],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () => import('./features/hardware/hardware-form.component').then(m => m.HardwareFormComponent)
       },
 // Software (Admin + Operario)
@@ -64,11 +69,18 @@ export const routes: Routes = [
       {
         path: 'software/nuevo',
         canActivate: [roleGuard('Admin', 'Operario')],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () => import('./features/software/software-form.component').then(m => m.SoftwareFormComponent)
+      },
+      {
+        path: 'software/:id',
+        canActivate: [roleGuard('Admin', 'Operario')],
+        loadComponent: () => import('./features/software/software-detail.component').then(m => m.SoftwareDetailComponent)
       },
       {
         path: 'software/:id/editar',
         canActivate: [roleGuard('Admin', 'Operario')],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () => import('./features/software/software-form.component').then(m => m.SoftwareFormComponent)
       },
 // Contratos (Admin + Operario)
@@ -80,6 +92,7 @@ export const routes: Routes = [
       {
         path: 'contratos/nuevo',
         canActivate: [roleGuard('Admin', 'Operario')],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () => import('./features/contratos/contrato-form.component').then(m => m.ContratoFormComponent)
       },
       {
@@ -90,6 +103,7 @@ export const routes: Routes = [
       {
         path: 'contratos/:id/editar',
         canActivate: [roleGuard('Admin', 'Operario')],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () => import('./features/contratos/contrato-form.component').then(m => m.ContratoFormComponent)
       },
 // Juzgados (Admin + Operario)
@@ -101,11 +115,13 @@ export const routes: Routes = [
       {
         path: 'juzgados/nuevo',
         canActivate: [roleGuard('Admin', 'Operario')],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () => import('./features/juzgados/juzgado-form.component').then(m => m.JuzgadoFormComponent)
       },
       {
         path: 'juzgados/:id/editar',
         canActivate: [roleGuard('Admin', 'Operario')],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () => import('./features/juzgados/juzgado-form.component').then(m => m.JuzgadoFormComponent)
       },
       {
@@ -127,11 +143,13 @@ export const routes: Routes = [
       {
         path: 'usuarios/nuevo',
         canActivate: [roleGuard('Admin')],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () => import('./features/usuarios/usuario-form.component').then(m => m.UsuarioFormComponent)
       },
       {
         path: 'usuarios/:id/editar',
         canActivate: [roleGuard('Admin')],
+        canDeactivate: [unsavedChangesGuard],
         loadComponent: () => import('./features/usuarios/usuario-form.component').then(m => m.UsuarioFormComponent)
       },
 // Auditoria (Solo Admin)

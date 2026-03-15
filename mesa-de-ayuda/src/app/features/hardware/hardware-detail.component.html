@@ -82,5 +82,20 @@
         <p class="detail-text">{{ hw.observaciones }}</p>
       </div>
     }
+
+    @if (softwareVinculado().length > 0) {
+      <div class="detail-section">
+        <h3 class="section-title">Software vinculado ({{ softwareVinculado().length }})</h3>
+        <div class="software-list">
+          @for (sw of softwareVinculado(); track sw.id) {
+            <a [routerLink]="['/software', sw.id]" class="software-item">
+              <span class="software-name">{{ sw.nombre }}</span>
+              <span class="software-provider">{{ sw.proveedor }}</span>
+              <span class="material-icon software-arrow">chevron_right</span>
+            </a>
+          }
+        </div>
+      </div>
+    }
   </div>
 }

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy, DestroyRef } from '@angular/core';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -8,8 +8,11 @@ import { HardwareService } from '../../core/services/hardware.service';
 import { SoftwareService } from '../../core/services/software.service';
 import { JuzgadoService } from '../../core/services/juzgado.service';
 import { ToastService } from '../../core/services/toast.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { HardwareResponse, SoftwareResponse, JuzgadoResponse } from '../../core/models';
+import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { mapBackendErrors, scrollToFirstError } from '../../core/utils/form-error-mapper';
 
 @Component({
   selector: 'app-contrato-form',
@@ -18,7 +21,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
   templateUrl: './contrato-form.component.html',
   styleUrl: './contrato-form.component.scss'
 })
-export class ContratoFormComponent implements OnInit {
+export class ContratoFormComponent implements OnInit, OnDestroy, HasUnsavedChanges {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -28,6 +31,7 @@ export class ContratoFormComponent implements OnInit {
   private readonly juzgadoService = inject(JuzgadoService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly breadcrumbService = inject(BreadcrumbService);
 
   readonly allHardware = signal<HardwareResponse[]>([]);
   readonly softwareList = signal<SoftwareResponse[]>([]);
@@ -45,6 +49,7 @@ export class ContratoFormComponent implements OnInit {
 
   isEditing = false;
   contratoId?: number;
+  submitted = false;
 
   form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(150)]],
@@ -108,6 +113,8 @@ export class ContratoFormComponent implements OnInit {
             hardwareIds: c.hardware.map(h => h.id),
             softwareIds: c.software.map(s => s.id)
           });
+          this.breadcrumbService.setLabel(c.nombre);
+          this.form.markAsPristine();
           this.loading.set(false);
         },
         error: () => {
@@ -160,10 +167,12 @@ export class ContratoFormComponent implements OnInit {
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      scrollToFirstError();
       return;
     }
 
     this.submitting.set(true);
+    this.submitted = true;
     const val = this.form.getRawValue();
 
     const dto = {
@@ -188,14 +197,30 @@ export class ContratoFormComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.toast.success(this.isEditing ? 'Contrato actualizado correctamente.' : 'Contrato registrado correctamente.');
+        this.form.markAsPristine();
         this.router.navigate(['/contratos']);
       },
-      error: () => this.submitting.set(false)
+      error: (err) => {
+        this.submitted = false;
+        this.submitting.set(false);
+        if (err.errors) {
+          mapBackendErrors(this.form, err.errors);
+          scrollToFirstError();
+        }
+      }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.breadcrumbService.reset();
   }
 
   isInvalid(field: string): boolean {
     const ctrl = this.form.get(field);
     return !!(ctrl && ctrl.invalid && ctrl.touched);
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.form.dirty && !this.submitted;
   }
 }

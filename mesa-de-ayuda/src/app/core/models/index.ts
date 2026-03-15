@@ -7,4 +7,5 @@ export * from './contrato.model';
 export * from './juzgado.model';
 export * from './usuario.model';
 export * from './audit-log.model';
+export * from './dashboard.model';
 export * from './ws-notification.model';
