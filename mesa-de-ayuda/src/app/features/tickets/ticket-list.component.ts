@@ -196,7 +196,7 @@ export class TicketListComponent implements OnInit {
   }
 
   private cargarTecnicosFallback(): void {
-    this.usuarioService.listar().pipe(
+    this.usuarioService.listarTodos().pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: usuarios => {

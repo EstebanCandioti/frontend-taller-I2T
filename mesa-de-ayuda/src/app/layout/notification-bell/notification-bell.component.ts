@@ -35,9 +35,9 @@ import { NotificationService, AppNotification } from '../../core/services/notifi
                 <span>Sin notificaciones</span>
               </div>
             } @else {
-              @for (n of notificationService.notifications(); track $index) {
+              @for (n of notificationService.notifications(); track n.id ?? $index) {
                 <div class="notif-item" [class.unread]="!n.leida"
-                  (click)="onNotificationClick(n, $index)">
+                  (click)="onNotificationClick(n)">
                   <div class="notif-icon-wrapper">
                     <span class="material-icon notif-type-icon">{{ getIcon(n) }}</span>
                   </div>
@@ -83,8 +83,8 @@ export class NotificationBellComponent {
     this.open.update(v => !v);
   }
 
-  onNotificationClick(n: AppNotification, index: number): void {
-    this.notificationService.markAsRead(index);
+  onNotificationClick(n: AppNotification): void {
+    this.notificationService.markAsRead(n.id);
     const route = this.notificationService.getRouteForNotification(n);
     if (route) {
       this.router.navigateByUrl(route);

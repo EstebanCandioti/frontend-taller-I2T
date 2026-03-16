@@ -108,6 +108,9 @@ export class ContratoDetailComponent implements OnInit, OnDestroy {
       next: () => {
         this.toast.success('Contrato eliminado.');
         this.router.navigate(['/contratos']);
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || err?.message || 'No se pudo eliminar el registro');
       }
     });
   }

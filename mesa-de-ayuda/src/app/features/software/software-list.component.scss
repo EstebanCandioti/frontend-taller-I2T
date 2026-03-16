@@ -269,6 +269,13 @@
   white-space: nowrap;
 }
 
+.td-truncate {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .page-actions {
     width: 100%;

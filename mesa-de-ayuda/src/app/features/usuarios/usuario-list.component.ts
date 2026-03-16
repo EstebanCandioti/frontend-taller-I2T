@@ -5,7 +5,7 @@ import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 
-import { UsuarioService } from '../../core/services/usuario.service';
+import { UsuarioService, UsuarioFiltros } from '../../core/services/usuario.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmDialogService } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { UsuarioResponse } from '../../core/models';
@@ -30,8 +30,13 @@ export class UsuarioListComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly usuarios = signal<UsuarioResponse[]>([]);
-  readonly filteredUsuarios = signal<UsuarioResponse[]>([]);
   readonly loading = signal(true);
+  readonly Math = Math;
+
+  currentPage = 0;
+  pageSize = 20;
+  totalElements = 0;
+  totalPages = 0;
 
   filtroRol = '';
   filtroEstado = '';
@@ -84,45 +89,19 @@ export class UsuarioListComponent implements OnInit {
     this.aplicarFiltros();
   }
 
-  cargarDatos(): void {
-    this.loading.set(true);
-
-    this.usuarioService.listar().pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: data => {
-        this.usuarios.set(data);
-        this.aplicarFiltros();
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
-      }
-    });
+  irAPagina(page: number): void {
+    if (page >= 0 && page < this.totalPages) {
+      this.cargarDatos(page);
+    }
   }
 
-  private aplicarFiltros(): void {
-    let resultado = this.usuarios();
+  cargarDatos(page = 0): void {
+    this.loading.set(true);
 
-    if (this.filtroRol) {
-      resultado = resultado.filter(u => u.rolNombre === this.filtroRol);
-    }
-
-    if (this.filtroEstado) {
-      const esActivo = this.filtroEstado === 'activo';
-      resultado = resultado.filter(u => u.activo === esActivo);
-    }
-
-    if (this.filtroBusqueda.trim()) {
-      const q = this.filtroBusqueda.trim().toLowerCase();
-      resultado = resultado.filter(u =>
-        u.nombreCompleto.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        (u.telefono && u.telefono.toLowerCase().includes(q))
-      );
-    }
-
-    this.filteredUsuarios.set(resultado);
+    const filtros: UsuarioFiltros = {};
+    if (this.filtroRol) filtros.rol = this.filtroRol;
+    if (this.filtroEstado) filtros.activo = this.filtroEstado === 'activo';
+    if (this.filtroBusqueda.trim()) filtros.q = this.filtroBusqueda.trim();
 
     this.router.navigate([], {
       relativeTo: this.route,
@@ -134,6 +113,26 @@ export class UsuarioListComponent implements OnInit {
       queryParamsHandling: 'merge',
       replaceUrl: true
     });
+
+    this.usuarioService.listar(filtros, page, this.pageSize).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: pagina => {
+        this.usuarios.set(pagina.content);
+        this.totalElements = pagina.totalElements;
+        this.totalPages = pagina.totalPages;
+        this.currentPage = pagina.currentPage;
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+      }
+    });
+  }
+
+  private aplicarFiltros(): void {
+    this.currentPage = 0;
+    this.cargarDatos(0);
   }
 
   async onActivar(usuario: UsuarioResponse): Promise<void> {
@@ -151,7 +150,10 @@ export class UsuarioListComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.toast.success('Usuario activado correctamente.');
-        this.cargarDatos();
+        this.cargarDatos(this.currentPage);
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || err?.message || 'No se pudo activar el usuario.');
       }
     });
   }
@@ -171,7 +173,10 @@ export class UsuarioListComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.toast.success('Usuario desactivado correctamente.');
-        this.cargarDatos();
+        this.cargarDatos(this.currentPage);
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || err?.message || 'No se pudo desactivar el usuario.');
       }
     });
   }
@@ -191,7 +196,10 @@ export class UsuarioListComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.toast.success('Usuario eliminado correctamente.');
-        this.cargarDatos();
+        this.cargarDatos(this.currentPage);
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || err?.message || 'No se pudo eliminar el usuario.');
       }
     });
   }

@@ -86,7 +86,7 @@
               </td>
               <td>{{ sw.fechaVencimiento ? (sw.fechaVencimiento | date:'dd/MM/yyyy') : '—' }}</td>
               <td>{{ sw.contratoNombre }}</td>
-              <td>
+              <td class="td-truncate">
                 @if (sw.juzgados && sw.juzgados.length > 0) {
                   <span [title]="juzgadosTooltip(sw)">
                     {{ sw.juzgados[0].nombre }}
@@ -98,7 +98,7 @@
                   —
                 }
               </td>
-              <td>
+              <td class="td-truncate">
                 @if (sw.hardware && sw.hardware.length > 0) {
                   <span [title]="hardwareTooltip(sw)">
                     {{ sw.hardware[0].nroInventario }}

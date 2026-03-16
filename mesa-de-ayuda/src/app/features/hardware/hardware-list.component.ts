@@ -156,6 +156,9 @@ export class HardwareListComponent implements OnInit {
       next: () => {
         this.toast.success('Hardware eliminado correctamente.');
         this.cargarDatos(this.currentPage);
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || err?.message || 'No se pudo eliminar el registro');
       }
     });
   }

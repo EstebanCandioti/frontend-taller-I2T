@@ -1,6 +1,7 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, DestroyRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/services/auth.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { TicketResponse } from '../../core/models';
@@ -18,6 +19,7 @@ import { ExportButtonComponent } from '../../shared/components/export-button/exp
 export class DashboardTecnicoComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly ticketService = inject(TicketService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
   readonly userName = signal('');
@@ -67,7 +69,9 @@ export class DashboardTecnicoComponent implements OnInit {
     const tecnicoId = this.auth.currentUser?.id;
     if (!tecnicoId) return;
 
-    this.ticketService.listarTodos({ tecnicoId }).subscribe({
+    this.ticketService.listarTodos({ tecnicoId }).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (tickets) => {
         this.tickets.set(tickets);
         this.loading.set(false);

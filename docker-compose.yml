@@ -1,9 +1,0 @@
-services:
-  frontend:
-    build:
-      context: ./mesa-de-ayuda
-      dockerfile: ../Dockerfile
-    container_name: mesa_ayuda_frontend
-    restart: unless-stopped
-    ports:
-      - "3000:80"

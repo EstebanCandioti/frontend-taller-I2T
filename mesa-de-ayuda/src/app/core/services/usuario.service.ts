@@ -1,18 +1,41 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApiResponse, UsuarioRequest, UsuarioResponse, RolResponse } from '../models';
+import { ApiResponse, PaginatedResponse, UsuarioRequest, UsuarioResponse, RolResponse } from '../models';
+
+export interface UsuarioFiltros {
+  rol?: string;
+  activo?: boolean;
+  q?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class UsuarioService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/usuarios`;
 
-  listar(): Observable<UsuarioResponse[]> {
+  listar(filtros?: UsuarioFiltros, page = 0, size = 20, sort = 'apellido,asc'): Observable<PaginatedResponse<UsuarioResponse>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', sort);
+
+    if (filtros) {
+      if (filtros.rol) params = params.set('rol', filtros.rol);
+      if (typeof filtros.activo === 'boolean') params = params.set('activo', filtros.activo.toString());
+      if (filtros.q) params = params.set('q', filtros.q);
+    }
+
     return this.http
-      .get<ApiResponse<UsuarioResponse[]>>(this.baseUrl)
+      .get<ApiResponse<PaginatedResponse<UsuarioResponse>>>(this.baseUrl, { params })
       .pipe(map(r => r.data));
+  }
+
+  listarTodos(filtros?: UsuarioFiltros, sort = 'apellido,asc', size = 1000): Observable<UsuarioResponse[]> {
+    return this.listar(filtros, 0, size, sort).pipe(
+      map(pagina => pagina.content)
+    );
   }
 
   obtenerPorId(id: number): Observable<UsuarioResponse> {

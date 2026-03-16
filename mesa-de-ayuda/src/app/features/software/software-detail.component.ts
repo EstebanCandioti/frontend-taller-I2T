@@ -108,6 +108,9 @@ export class SoftwareDetailComponent implements OnInit, OnDestroy {
       next: () => {
         this.toast.success('Software eliminado correctamente.');
         this.router.navigate(['/software']);
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || err?.message || 'No se pudo eliminar el registro');
       }
     });
   }

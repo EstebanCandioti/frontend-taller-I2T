@@ -84,12 +84,6 @@ export class WebSocketService {
   private subscribeToChannels(): void {
     if (!this.client?.connected) return;
 
-    // Canal broadcast: notificaciones para todos los usuarios con permisos
-    const topicSub = this.client.subscribe('/topic/notificaciones', (msg: IMessage) => {
-      this.handleMessage(msg);
-    });
-    this.subscriptions.push(topicSub);
-
     // Canal privado: notificaciones dirigidas al usuario autenticado
     const queueSub = this.client.subscribe('/user/queue/notificaciones', (msg: IMessage) => {
       this.handleMessage(msg);
@@ -118,7 +112,7 @@ export class WebSocketService {
   }
 
   private buildSockJsUrl(token: string): string {
-    const url = new URL(environment.wsUrl);
+    const url = new URL(environment.wsUrl, window.location.origin);
 
     if (url.protocol === 'ws:') {
       url.protocol = 'http:';

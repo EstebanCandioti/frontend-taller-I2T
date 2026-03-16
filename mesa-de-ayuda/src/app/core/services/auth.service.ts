@@ -57,7 +57,7 @@ export class AuthService {
 
   logout(): void {
     this.ws.disconnect();
-    this.notificationService.clear();
+    this.notificationService.clearNotifications();
     this.wsInitialized = false;
     sessionStorage.removeItem(USER_KEY);
     this.currentUserSubject.next(null);
@@ -92,7 +92,7 @@ export class AuthService {
   }
 
   private connectWebSocket(token: string): void {
-    if (this.wsInitialized) return;
+    if (this.wsInitialized || !environment.wsEnabled) return;
     this.wsInitialized = true;
     this.notificationService.init();
     this.ws.connect(token);

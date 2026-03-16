@@ -101,6 +101,9 @@ export class JuzgadoListComponent implements OnInit {
       next: () => {
         this.toast.success('Juzgado eliminado.');
         this.cargarDatos();
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || err?.message || 'No se pudo eliminar el registro');
       }
     });
   }
@@ -121,6 +124,9 @@ export class JuzgadoListComponent implements OnInit {
       next: () => {
         this.toast.success('Circunscripcion eliminada.');
         this.cargarDatos();
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || err?.message || 'No se pudo eliminar el registro');
       }
     });
   }

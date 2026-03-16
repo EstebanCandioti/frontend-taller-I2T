@@ -124,6 +124,9 @@ export class SoftwareListComponent implements OnInit {
       next: () => {
         this.toast.success('Software eliminado correctamente.');
         this.cargarDatos(this.currentPage);
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || err?.message || 'No se pudo eliminar el registro');
       }
     });
   }

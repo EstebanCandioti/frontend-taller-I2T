@@ -73,6 +73,9 @@ export class HardwareDetailComponent implements OnInit, OnDestroy {
       next: () => {
         this.toast.success('Hardware eliminado correctamente.');
         this.router.navigate(['/hardware']);
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || err?.message || 'No se pudo eliminar el registro');
       }
     });
   }

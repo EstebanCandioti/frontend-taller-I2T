@@ -5,7 +5,7 @@
       title="Usuarios"
       filename="usuarios"
       [columns]="exportColumns"
-      [data]="filteredUsuarios()" />
+      [data]="usuarios()" />
     <button class="btn btn-primary" routerLink="/usuarios/nuevo">
       <span class="material-icon">person_add</span>
       Nuevo Usuario
@@ -58,7 +58,7 @@
 <!-- Contenido -->
 @if (loading()) {
   <app-loading-spinner message="Cargando usuarios..." />
-} @else if (filteredUsuarios().length === 0) {
+} @else if (usuarios().length === 0) {
   <app-empty-state
     icon="people"
     title="No se encontraron usuarios"
@@ -68,7 +68,7 @@
 } @else {
   <div class="table-card">
     <div class="table-info">
-      <span>{{ filteredUsuarios().length }} usuario{{ filteredUsuarios().length !== 1 ? 's' : '' }}</span>
+      <span>{{ totalElements }} usuario{{ totalElements !== 1 ? 's' : '' }}</span>
     </div>
     <div class="table-responsive">
       <table class="data-table">
@@ -84,7 +84,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (u of filteredUsuarios(); track u.id) {
+          @for (u of usuarios(); track u.id) {
             <tr>
               <td class="td-bold">{{ u.nombreCompleto }}</td>
               <td>{{ u.email }}</td>
@@ -123,4 +123,20 @@
       </table>
     </div>
   </div>
+
+  @if (totalPages > 1) {
+    <div class="pagination-container">
+      <div class="pagination-info">
+        Mostrando {{ currentPage * pageSize + 1 }}–{{ Math.min((currentPage + 1) * pageSize, totalElements) }}
+        de {{ totalElements }} registros
+      </div>
+      <div class="pagination-controls">
+        <button class="btn-page" (click)="irAPagina(0)" [disabled]="currentPage === 0" title="Primera">«</button>
+        <button class="btn-page" (click)="irAPagina(currentPage - 1)" [disabled]="currentPage === 0" title="Anterior">‹</button>
+        <span class="pagination-current">Pagina {{ currentPage + 1 }} de {{ totalPages }}</span>
+        <button class="btn-page" (click)="irAPagina(currentPage + 1)" [disabled]="currentPage === totalPages - 1" title="Siguiente">›</button>
+        <button class="btn-page" (click)="irAPagina(totalPages - 1)" [disabled]="currentPage === totalPages - 1" title="Ultima">»</button>
+      </div>
+    </div>
+  }
 }
