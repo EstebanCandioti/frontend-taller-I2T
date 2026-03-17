@@ -50,6 +50,7 @@ export class TicketFormComponent implements OnInit, OnDestroy, HasUnsavedChanges
 
   form!: FormGroup;
   submitted = false;
+  private initialFormValue: any = null;
 
   ngOnInit(): void {
     this.buildForm();
@@ -128,8 +129,13 @@ export class TicketFormComponent implements OnInit, OnDestroy, HasUnsavedChanges
     this.breadcrumbService.reset();
   }
 
+  get hasRealChanges(): boolean {
+    if (!this.initialFormValue) return !this.form.pristine;
+    return JSON.stringify(this.form.getRawValue()) !== JSON.stringify(this.initialFormValue);
+  }
+
   hasUnsavedChanges(): boolean {
-    return this.form.dirty && !this.submitted;
+    return this.hasRealChanges && !this.submitted;
   }
 
   private buildForm(): void {
@@ -202,6 +208,7 @@ export class TicketFormComponent implements OnInit, OnDestroy, HasUnsavedChanges
         });
 
         this.form.markAsPristine();
+        this.initialFormValue = this.form.getRawValue();
         this.loadingData.set(false);
       },
       error: () => {

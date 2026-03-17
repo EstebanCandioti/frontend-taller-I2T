@@ -138,7 +138,10 @@
             formControlName="referenteTelefono"
             class="form-control"
             [class.invalid]="hasError('referenteTelefono', 'maxlength')"
-            placeholder="Ej: 3804-123456" />
+            placeholder="Ej: 3804123456"
+            inputmode="numeric"
+            (keydown)="$event.key.length === 1 && !/[0-9]/.test($event.key) ? $event.preventDefault() : null"
+            (paste)="$event.preventDefault()" />
           @if (hasError('referenteTelefono', 'maxlength')) {
             <span class="form-error">Maximo 30 caracteres.</span>
           }
@@ -152,7 +155,7 @@
       <button
         type="submit"
         class="btn btn-primary"
-        [disabled]="form.invalid || form.pristine || submitting()">
+        [disabled]="form.invalid || !hasRealChanges || submitting()">
         @if (submitting()) {
           <span class="spinner-btn"></span>
           Guardando...

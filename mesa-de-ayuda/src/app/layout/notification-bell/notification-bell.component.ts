@@ -42,7 +42,7 @@ import { NotificationService, AppNotification } from '../../core/services/notifi
                     <span class="material-icon notif-type-icon">{{ getIcon(n) }}</span>
                   </div>
                   <div class="notif-content">
-                    <span class="notif-message">{{ n.mensaje }}</span>
+                    <span class="notif-message">{{ formatMessage(n.mensaje) }}</span>
                     <span class="notif-time">{{ n.fecha | date:'dd/MM HH:mm' }}</span>
                   </div>
                   @if (!n.leida) {
@@ -87,9 +87,28 @@ export class NotificationBellComponent {
     this.notificationService.markAsRead(n.id);
     const route = this.notificationService.getRouteForNotification(n);
     if (route) {
-      this.router.navigateByUrl(route);
+      // Si ya estamos en la misma ruta base (ej. /tickets/X), forzar navegacion
+      if (this.router.url.split('?')[0] === route) {
+        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+          this.router.navigateByUrl(route);
+        });
+      } else {
+        this.router.navigateByUrl(route);
+      }
       this.open.set(false);
     }
+  }
+
+  formatMessage(msg: string): string {
+    return msg
+      .replace(/\bEN_CURSO\b/g, 'En Curso')
+      .replace(/\bSOLICITADO\b/g, 'Solicitado')
+      .replace(/\bASIGNADO\b/g, 'Asignado')
+      .replace(/\bCERRADO\b/g, 'Cerrado')
+      .replace(/\bCRITICA\b/g, 'Critica')
+      .replace(/\bALTA\b/g, 'Alta')
+      .replace(/\bMEDIA\b/g, 'Media')
+      .replace(/\bBAJA\b/g, 'Baja');
   }
 
   getIcon(n: AppNotification): string {

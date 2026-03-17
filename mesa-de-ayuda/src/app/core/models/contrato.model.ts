@@ -28,6 +28,7 @@ export interface ContratoResponse {
   monto: number;
   diasAlertaVencimiento: number;
   observaciones: string;
+  renovadoAId?: number;
   vencido: boolean;
   proximoAVencer: boolean;
   hardware: HardwareSimple[];

@@ -15,11 +15,18 @@
       </span>
     </div>
     <div class="header-actions">
-      @if (c.vencido || c.proximoAVencer) {
+      @if ((c.vencido || c.proximoAVencer) && !c.renovadoAId) {
         <button class="btn btn-success" (click)="abrirRenovar()">
           <span class="material-icon">autorenew</span>
           Renovar
         </button>
+      }
+      @if (c.renovadoAId) {
+        <a [routerLink]="['/contratos', c.renovadoAId]" class="badge-renovado"
+          title="Este contrato ya fue renovado. Click para ver el contrato vigente.">
+          <span class="material-icon">info</span>
+          Renovado — ver contrato #{{ c.renovadoAId }}
+        </a>
       }
       <a [routerLink]="['/contratos', c.id, 'editar']" class="btn btn-secondary">
         <span class="material-icon">edit</span>

@@ -73,6 +73,9 @@ export class SoftwareFormComponent implements OnInit, OnDestroy, HasUnsavedChang
   softwareId?: number;
   private editingSoftware?: SoftwareResponse;
   submitted = false;
+  private initialFormValue: any = null;
+  private initialJuzgadoIds: number[] = [];
+  private initialHardwareIds: number[] = [];
 
   form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(150)]],
@@ -161,6 +164,9 @@ export class SoftwareFormComponent implements OnInit, OnDestroy, HasUnsavedChang
           });
           this.breadcrumbService.setLabel(sw.nombre);
           this.form.markAsPristine();
+          this.initialFormValue = this.form.getRawValue();
+          this.initialJuzgadoIds = [...this.selectedJuzgadoIds()];
+          this.initialHardwareIds = [...this.selectedHardwareIds()];
           this.loading.set(false);
         },
         error: () => {
@@ -349,7 +355,15 @@ export class SoftwareFormComponent implements OnInit, OnDestroy, HasUnsavedChang
     return !!(ctrl && ctrl.invalid && ctrl.touched);
   }
 
+  get hasRealChanges(): boolean {
+    if (!this.initialFormValue) return !this.form.pristine;
+    const formChanged = JSON.stringify(this.form.getRawValue()) !== JSON.stringify(this.initialFormValue);
+    const juzgadosChanged = JSON.stringify([...this.selectedJuzgadoIds()].sort()) !== JSON.stringify([...this.initialJuzgadoIds].sort());
+    const hardwareChanged = JSON.stringify([...this.selectedHardwareIds()].sort()) !== JSON.stringify([...this.initialHardwareIds].sort());
+    return formChanged || juzgadosChanged || hardwareChanged;
+  }
+
   hasUnsavedChanges(): boolean {
-    return this.form.dirty && !this.submitted;
+    return this.hasRealChanges && !this.submitted;
   }
 }

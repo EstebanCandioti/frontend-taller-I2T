@@ -32,8 +32,12 @@ export class ContratoDetailComponent implements OnInit, OnDestroy {
   readonly showRenovar = signal(false);
 
   ngOnInit(): void {
-    const id = +this.route.snapshot.paramMap.get('id')!;
-    this.cargarContrato(id);
+    this.route.paramMap.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(params => {
+      const id = +params.get('id')!;
+      this.cargarContrato(id);
+    });
   }
 
   cargarContrato(id: number): void {

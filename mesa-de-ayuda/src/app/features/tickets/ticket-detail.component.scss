@@ -52,8 +52,23 @@
 
 .header-actions {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.actions-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.actions-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--gray-200);
 }
 
 .btn {
@@ -90,6 +105,22 @@
 
   &:hover:not(:disabled) {
     background: #b45309;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-outline {
+  background: #fff;
+  color: var(--gray-600);
+  border: 1px solid var(--gray-300);
+
+  &:hover:not(:disabled) {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
   }
 
   &:disabled {

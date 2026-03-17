@@ -87,8 +87,12 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    const id = +this.route.snapshot.params['id'];
-    this.cargarTicket(id);
+    this.route.params.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(params => {
+      const id = +params['id'];
+      this.cargarTicket(id);
+    });
   }
 
   recargar(): void {
@@ -105,7 +109,24 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: () => {
-        this.toast.success('Ticket pasado a En Curso.');
+        this.actionLoading.set(false);
+        this.recargar();
+      },
+      error: () => {
+        this.actionLoading.set(false);
+      }
+    });
+  }
+
+  volverAAsignado(): void {
+    const t = this.ticket();
+    if (!t) return;
+
+    this.actionLoading.set(true);
+    this.ticketService.volverAAsignado(t.id).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: () => {
         this.actionLoading.set(false);
         this.recargar();
       },

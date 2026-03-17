@@ -36,6 +36,7 @@ export class UsuarioFormComponent implements OnInit, OnDestroy, HasUnsavedChange
   isEditing = false;
   usuarioId?: number;
   submitted = false;
+  private initialFormValue: any = null;
 
   form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(100)]],
@@ -80,6 +81,7 @@ export class UsuarioFormComponent implements OnInit, OnDestroy, HasUnsavedChange
           });
           this.breadcrumbService.setLabel(u.nombre + ' ' + u.apellido);
           this.form.markAsPristine();
+          this.initialFormValue = this.form.getRawValue();
           this.loading.set(false);
           this.loadingData.set(false);
         },
@@ -174,7 +176,12 @@ export class UsuarioFormComponent implements OnInit, OnDestroy, HasUnsavedChange
     this.breadcrumbService.reset();
   }
 
+  get hasRealChanges(): boolean {
+    if (!this.initialFormValue) return !this.form.pristine;
+    return JSON.stringify(this.form.getRawValue()) !== JSON.stringify(this.initialFormValue);
+  }
+
   hasUnsavedChanges(): boolean {
-    return this.form.dirty && !this.submitted;
+    return this.hasRealChanges && !this.submitted;
   }
 }

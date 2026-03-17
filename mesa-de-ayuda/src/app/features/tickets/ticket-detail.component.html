@@ -27,17 +27,25 @@
             <span class="material-icon">edit</span> Editar
           </a>
         }
-        @if (t.estado === 'ASIGNADO') {
-          <button class="btn btn-warning" (click)="pasarAEnCurso()" [disabled]="actionLoading()">
-            <span class="material-icon">engineering</span> Pasar a En Curso
-          </button>
-        }
         @if (t.estado === 'ASIGNADO' || t.estado === 'EN_CURSO') {
+          <div class="actions-group actions-primary">
+            @if (t.estado === 'ASIGNADO') {
+              <button class="btn btn-warning" (click)="pasarAEnCurso()" [disabled]="actionLoading()">
+                <span class="material-icon">engineering</span> Pasar a En Curso
+              </button>
+            }
+            @if (t.estado === 'EN_CURSO') {
+              <button class="btn btn-outline" (click)="volverAAsignado()" [disabled]="actionLoading()">
+                <span class="material-icon">undo</span> Volver a Asignado
+              </button>
+            }
+            <button class="btn btn-success" (click)="cerrarTicket()">
+              <span class="material-icon">check_circle</span> Cerrar Ticket
+            </button>
+          </div>
+          <div class="actions-divider"></div>
           <button class="btn btn-secondary" (click)="reasignarTicket()">
             <span class="material-icon">swap_horiz</span> Reasignar
-          </button>
-          <button class="btn btn-success" (click)="cerrarTicket()">
-            <span class="material-icon">check_circle</span> Cerrar Ticket
           </button>
         }
       </div>

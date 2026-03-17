@@ -43,6 +43,7 @@ export class HardwareFormComponent implements OnInit, OnDestroy, HasUnsavedChang
   isEditing = false;
   hardwareId?: number;
   submitted = false;
+  private initialFormValue: any = null;
 
   form = this.fb.group({
     nroInventario: ['', [Validators.required, Validators.maxLength(50)]],
@@ -99,6 +100,7 @@ export class HardwareFormComponent implements OnInit, OnDestroy, HasUnsavedChang
           this.loading.set(false);
           this.loadingData.set(false);
           this.form.markAsPristine();
+          this.initialFormValue = this.form.getRawValue();
         },
         error: () => {
           this.toast.error('No se pudo cargar el hardware.');
@@ -165,7 +167,12 @@ export class HardwareFormComponent implements OnInit, OnDestroy, HasUnsavedChang
     return !!(ctrl && ctrl.invalid && ctrl.touched);
   }
 
+  get hasRealChanges(): boolean {
+    if (!this.initialFormValue) return !this.form.pristine;
+    return JSON.stringify(this.form.getRawValue()) !== JSON.stringify(this.initialFormValue);
+  }
+
   hasUnsavedChanges(): boolean {
-    return this.form.dirty && !this.submitted;
+    return this.hasRealChanges && !this.submitted;
   }
 }

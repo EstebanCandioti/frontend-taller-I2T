@@ -115,6 +115,7 @@ export class AuthService {
   /** Normaliza el rol quitando tildes para que coincida con el tipo Rol del frontend */
   private normalizeRol(rol: string): Rol {
     const normalized = rol.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    return normalized as Rol;
+    const valid: Rol[] = ['Admin', 'Operario', 'Tecnico'];
+    return valid.includes(normalized as Rol) ? (normalized as Rol) : 'Tecnico';
   }
 }

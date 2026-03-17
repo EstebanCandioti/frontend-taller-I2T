@@ -140,7 +140,7 @@
 
     <div class="form-actions">
       <a routerLink="/hardware" class="btn btn-secondary">Cancelar</a>
-      <button type="submit" class="btn btn-primary" [disabled]="form.invalid || form.pristine || submitting()">
+      <button type="submit" class="btn btn-primary" [disabled]="form.invalid || !hasRealChanges || submitting()">
         @if (submitting()) {
           <span class="spinner-btn"></span>
         }

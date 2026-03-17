@@ -84,6 +84,12 @@ export class TicketService {
       .pipe(map(r => r.data));
   }
 
+  volverAAsignado(id: number): Observable<TicketResponse> {
+    return this.http
+      .put<ApiResponse<TicketResponse>>(`${this.baseUrl}/${id}/volver-asignado`, {})
+      .pipe(map(r => r.data));
+  }
+
   cerrar(id: number, dto: TicketCerrarRequest): Observable<TicketResponse> {
     return this.http
       .put<ApiResponse<TicketResponse>>(`${this.baseUrl}/${id}/cerrar`, dto)

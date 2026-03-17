@@ -50,6 +50,7 @@ export class ContratoFormComponent implements OnInit, OnDestroy, HasUnsavedChang
   isEditing = false;
   contratoId?: number;
   submitted = false;
+  private initialFormValue: any = null;
 
   form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(150)]],
@@ -115,6 +116,7 @@ export class ContratoFormComponent implements OnInit, OnDestroy, HasUnsavedChang
           });
           this.breadcrumbService.setLabel(c.nombre);
           this.form.markAsPristine();
+          this.initialFormValue = this.form.getRawValue();
           this.loading.set(false);
         },
         error: () => {
@@ -220,7 +222,12 @@ export class ContratoFormComponent implements OnInit, OnDestroy, HasUnsavedChang
     return !!(ctrl && ctrl.invalid && ctrl.touched);
   }
 
+  get hasRealChanges(): boolean {
+    if (!this.initialFormValue) return !this.form.pristine;
+    return JSON.stringify(this.form.getRawValue()) !== JSON.stringify(this.initialFormValue);
+  }
+
   hasUnsavedChanges(): boolean {
-    return this.form.dirty && !this.submitted;
+    return this.hasRealChanges && !this.submitted;
   }
 }

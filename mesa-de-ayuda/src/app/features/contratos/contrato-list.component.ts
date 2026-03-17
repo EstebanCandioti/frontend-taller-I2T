@@ -13,7 +13,7 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 import { ExportButtonComponent } from '../../shared/components/export-button/export-button.component';
 import { ExportColumn } from '../../core/services/export.service';
 
-type TabId = 'todos' | 'activos' | 'proximos' | 'vencidos';
+type TabId = 'todos' | 'activos' | 'proximos' | 'vencidos' | 'renovados';
 
 interface Tab {
   id: TabId;
@@ -44,30 +44,57 @@ export class ContratoListComponent implements OnInit {
     { id: 'todos', label: 'Todos', icon: 'list' },
     { id: 'activos', label: 'Activos', icon: 'check_circle' },
     { id: 'proximos', label: 'Proximos a vencer', icon: 'schedule' },
-    { id: 'vencidos', label: 'Vencidos', icon: 'error' }
+    { id: 'vencidos', label: 'Vencidos', icon: 'error' },
+    { id: 'renovados', label: 'Renovados', icon: 'autorenew' }
   ];
 
+  // Contratos vencidos o próximos a vencer que ya fueron renovados se ocultan de todas las listas
+  private readonly contratosVisibles = computed(() =>
+    this.allContratos().filter(c => !((c.vencido || c.proximoAVencer) && c.renovadoAId))
+  );
+
+  readonly contratosRenovados = computed(() =>
+    this.allContratos().filter(c => c.renovadoAId)
+  );
+
   readonly filteredContratos = computed(() => {
-    const all = this.allContratos();
-    switch (this.activeTab()) {
-      case 'activos':
-        return all.filter(c => !c.vencido && !c.proximoAVencer);
-      case 'proximos':
-        return all.filter(c => c.proximoAVencer && !c.vencido);
-      case 'vencidos':
-        return all.filter(c => c.vencido);
-      default:
-        return all;
+    let result: ContratoResponse[];
+    if (this.activeTab() === 'renovados') {
+      result = this.contratosRenovados();
+    } else {
+      const all = this.contratosVisibles();
+      switch (this.activeTab()) {
+        case 'activos':
+          result = all.filter(c => !c.vencido && !c.proximoAVencer);
+          break;
+        case 'proximos':
+          result = all.filter(c => c.proximoAVencer && !c.vencido);
+          break;
+        case 'vencidos':
+          result = all.filter(c => c.vencido);
+          break;
+        default:
+          result = all;
+      }
     }
+
+    const q = this.filtroBusqueda().trim().toLowerCase();
+    if (!q) return result;
+    return result.filter(c =>
+      c.nombre.toLowerCase().includes(q) ||
+      c.proveedor.toLowerCase().includes(q) ||
+      (c.cobertura && c.cobertura.toLowerCase().includes(q))
+    );
   });
 
   readonly tabCounts = computed(() => {
-    const all = this.allContratos();
+    const all = this.contratosVisibles();
     return {
       todos: all.length,
       activos: all.filter(c => !c.vencido && !c.proximoAVencer).length,
       proximos: all.filter(c => c.proximoAVencer && !c.vencido).length,
-      vencidos: all.filter(c => c.vencido).length
+      vencidos: all.filter(c => c.vencido).length,
+      renovados: this.contratosRenovados().length
     };
   });
 
@@ -81,11 +108,11 @@ export class ContratoListComponent implements OnInit {
     { header: 'Estado', field: 'vencido', format: (v, row) => row.vencido ? 'Vencido' : (row.proximoAVencer ? 'Proximo a vencer' : 'Activo') },
   ];
 
-  filtroBusqueda = '';
+  readonly filtroBusqueda = signal('');
 
   ngOnInit(): void {
     const tab = this.route.snapshot.queryParams['tab'] as TabId;
-    if (tab && ['todos', 'activos', 'proximos', 'vencidos'].includes(tab)) {
+    if (tab && ['todos', 'activos', 'proximos', 'vencidos', 'renovados'].includes(tab)) {
       this.activeTab.set(tab);
     }
     this.cargarDatos();

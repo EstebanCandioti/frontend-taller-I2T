@@ -72,9 +72,9 @@
               <option [value]="c.id">{{ c.nombre }} ({{ c.distritoJudicial }})</option>
             }
           </select>
-          <a routerLink="/juzgados/circunscripciones/nueva" class="btn-icon-sm" title="Crear circunscripcion">
+          <button type="button" class="btn-icon-sm" title="Crear circunscripcion" (click)="irACrearCircunscripcion()">
             <span class="material-icon">add</span>
-          </a>
+          </button>
         </div>
         @if (form.get('circunscripcionId')?.hasError('required') && form.get('circunscripcionId')?.touched) {
           <span class="form-error">La circunscripcion es obligatoria.</span>
@@ -90,7 +90,7 @@
 
     <div class="form-actions">
       <a routerLink="/juzgados" class="btn btn-secondary">Cancelar</a>
-      <button type="submit" class="btn btn-primary" [disabled]="form.invalid || form.pristine || submitting()">
+      <button type="submit" class="btn btn-primary" [disabled]="form.invalid || !hasRealChanges || submitting()">
         @if (submitting()) {
           <span class="spinner-btn"></span>
         }

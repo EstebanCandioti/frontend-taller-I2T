@@ -42,8 +42,8 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
           </div>
         </div>
         <div class="form-actions">
-          <a routerLink="/juzgados" class="btn btn-secondary">Cancelar</a>
-          <button type="submit" class="btn btn-primary" [disabled]="form.invalid || form.pristine || submitting()">
+          <a [routerLink]="returnUrl || '/juzgados'" class="btn btn-secondary">Cancelar</a>
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid || !hasRealChanges || submitting()">
             @if (submitting()) { <span class="spinner-btn"></span> }
             {{ isEditing ? 'Guardar Cambios' : 'Registrar' }}
           </button>
@@ -66,6 +66,8 @@ export class CircunscripcionFormComponent implements OnInit {
 
   isEditing = false;
   circunscripcionId?: number;
+  returnUrl: string | null = null;
+  private initialFormValue: any = null;
 
   form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(100)]],
@@ -73,6 +75,7 @@ export class CircunscripcionFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       this.isEditing = true;
@@ -83,6 +86,8 @@ export class CircunscripcionFormComponent implements OnInit {
       ).subscribe({
         next: c => {
           this.form.patchValue({ nombre: c.nombre, distritoJudicial: c.distritoJudicial });
+          this.form.markAsPristine();
+          this.initialFormValue = this.form.getRawValue();
           this.loading.set(false);
         },
         error: () => {
@@ -107,10 +112,15 @@ export class CircunscripcionFormComponent implements OnInit {
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.toast.success(this.isEditing ? 'Circunscripcion actualizada.' : 'Circunscripcion registrada.');
-        this.router.navigate(['/juzgados']);
+        this.router.navigateByUrl(this.returnUrl || '/juzgados');
       },
       error: () => this.submitting.set(false)
     });
+  }
+
+  get hasRealChanges(): boolean {
+    if (!this.initialFormValue) return !this.form.pristine;
+    return JSON.stringify(this.form.getRawValue()) !== JSON.stringify(this.initialFormValue);
   }
 
   isInvalid(field: string): boolean {

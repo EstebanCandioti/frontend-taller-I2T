@@ -93,7 +93,19 @@ export class NotificationService {
   }
 
   private showToast(notification: WsNotification): void {
-    this.toast.info(notification.mensaje);
+    this.toast.info(this.formatMessage(notification.mensaje));
+  }
+
+  private formatMessage(msg: string): string {
+    return msg
+      .replace(/\bEN_CURSO\b/g, 'En Curso')
+      .replace(/\bSOLICITADO\b/g, 'Solicitado')
+      .replace(/\bASIGNADO\b/g, 'Asignado')
+      .replace(/\bCERRADO\b/g, 'Cerrado')
+      .replace(/\bCRITICA\b/g, 'Critica')
+      .replace(/\bALTA\b/g, 'Alta')
+      .replace(/\bMEDIA\b/g, 'Media')
+      .replace(/\bBAJA\b/g, 'Baja');
   }
 
   private loadFromStorage(): void {

@@ -29,14 +29,30 @@
   </nav>
 </div>
 
+<!-- Busqueda -->
+<div class="search-bar">
+  <span class="material-icon search-icon">search</span>
+  <input
+    type="text"
+    class="search-input"
+    placeholder="Buscar por nombre, proveedor o cobertura..."
+    [value]="filtroBusqueda()"
+    (input)="filtroBusqueda.set($any($event.target).value)">
+  @if (filtroBusqueda()) {
+    <button class="search-clear" (click)="filtroBusqueda.set('')" title="Limpiar busqueda">
+      <span class="material-icon">close</span>
+    </button>
+  }
+</div>
+
 <!-- Contenido -->
 @if (loading()) {
   <app-loading-spinner message="Cargando contratos..." />
 } @else if (filteredContratos().length === 0) {
   <app-empty-state
     icon="description"
-    title="No hay contratos"
-    [message]="activeTab() !== 'todos' ? 'No hay contratos en esta categoria.' : 'Aun no se registraron contratos.'"
+    [title]="activeTab() === 'renovados' ? 'No hay contratos renovados' : 'No hay contratos'"
+    [message]="activeTab() === 'renovados' ? 'Aun no se renovaron contratos.' : (activeTab() !== 'todos' ? 'No hay contratos en esta categoria.' : 'Aun no se registraron contratos.')"
     [actionLabel]="activeTab() !== 'todos' ? 'Ver todos' : 'Registrar contrato'"
     (action)="activeTab() !== 'todos' ? setTab('todos') : router.navigate(['/contratos/nuevo'])" />
 } @else {
@@ -45,61 +61,102 @@
       <span>{{ filteredContratos().length }} contrato{{ filteredContratos().length !== 1 ? 's' : '' }}</span>
     </div>
     <div class="table-responsive">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Proveedor</th>
-            <th>Inicio</th>
-            <th>Fin</th>
-            <th>Cobertura</th>
-            <th>Monto</th>
-            <th>Estado</th>
-            <th>HW / SW</th>
-            <th class="th-actions">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (c of filteredContratos(); track c.id) {
-            <tr class="clickable-row" (click)="router.navigate(['/contratos', c.id])">
-              <td class="td-bold">{{ c.nombre }}</td>
-              <td>{{ c.proveedor }}</td>
-              <td>{{ c.fechaInicio | date:'dd/MM/yyyy' }}</td>
-              <td>
-                {{ c.fechaFin | date:'dd/MM/yyyy' }}
-                @if (!c.vencido) {
-                  <span class="dias-restantes" [class]="estadoClass(c)">
-                    {{ diasRestantes(c) }}d
-                  </span>
-                }
-              </td>
-              <td class="td-truncate">{{ c.cobertura || '—' }}</td>
-              <td>{{ c.monto ? (c.monto | currency:'ARS':'symbol':'1.0-0') : '—' }}</td>
-              <td>
-                <span class="estado-badge" [class]="'estado-' + estadoClass(c)">
-                  {{ estadoContrato(c) }}
-                </span>
-              </td>
-              <td>
-                <span class="count-badge" title="Hardware">{{ c.hardware.length }}</span>
-                /
-                <span class="count-badge" title="Software">{{ c.software.length }}</span>
-              </td>
-              <td class="td-actions" (click)="$event.stopPropagation()">
-                <button class="btn-icon" title="Ver detalle" (click)="router.navigate(['/contratos', c.id])">
-                  <span class="material-icon">visibility</span>
-                </button>
-                <button class="btn-icon" title="Editar" (click)="router.navigate(['/contratos', c.id, 'editar'])">
-                  <span class="material-icon">edit</span>
-                </button>
-                <button class="btn-icon btn-icon--danger" title="Eliminar" (click)="onEliminar(c)">
-                  <span class="material-icon">delete</span>
-                </button>
-              </td>
+      @if (activeTab() === 'renovados') {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Proveedor</th>
+              <th>Inicio</th>
+              <th>Fin</th>
+              <th>Monto</th>
+              <th>Estado al renovar</th>
+              <th>Nuevo contrato</th>
+              <th class="th-actions">Acciones</th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (c of filteredContratos(); track c.id) {
+              <tr class="clickable-row" (click)="router.navigate(['/contratos', c.id])">
+                <td class="td-bold">{{ c.nombre }}</td>
+                <td>{{ c.proveedor }}</td>
+                <td>{{ c.fechaInicio | date:'dd/MM/yyyy' }}</td>
+                <td>{{ c.fechaFin | date:'dd/MM/yyyy' }}</td>
+                <td>{{ c.monto ? (c.monto | currency:'ARS':'symbol':'1.0-0') : '—' }}</td>
+                <td>
+                  <span class="estado-badge" [class]="'estado-' + estadoClass(c)">
+                    {{ estadoContrato(c) }}
+                  </span>
+                </td>
+                <td (click)="$event.stopPropagation()">
+                  <a class="nuevo-contrato-link" [routerLink]="['/contratos', c.renovadoAId]">
+                    <span class="material-icon">open_in_new</span>
+                    Ver contrato #{{ c.renovadoAId }}
+                  </a>
+                </td>
+                <td class="td-actions" (click)="$event.stopPropagation()">
+                  <button class="btn-icon" title="Ver detalle" (click)="router.navigate(['/contratos', c.id])">
+                    <span class="material-icon">visibility</span>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Proveedor</th>
+              <th>Inicio</th>
+              <th>Fin</th>
+              <th>Cobertura</th>
+              <th>Monto</th>
+              <th>Estado</th>
+              <th>HW / SW</th>
+              <th class="th-actions">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of filteredContratos(); track c.id) {
+              <tr class="clickable-row" (click)="router.navigate(['/contratos', c.id])">
+                <td class="td-bold">{{ c.nombre }}</td>
+                <td>{{ c.proveedor }}</td>
+                <td>{{ c.fechaInicio | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  {{ c.fechaFin | date:'dd/MM/yyyy' }}
+                  @if (!c.vencido) {
+                    <span class="dias-restantes" [class]="estadoClass(c)">
+                      {{ diasRestantes(c) }}d
+                    </span>
+                  }
+                </td>
+                <td class="td-truncate">{{ c.cobertura || '—' }}</td>
+                <td>{{ c.monto ? (c.monto | currency:'ARS':'symbol':'1.0-0') : '—' }}</td>
+                <td>
+                  <span class="estado-badge" [class]="'estado-' + estadoClass(c)">
+                    {{ estadoContrato(c) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="count-badge" title="Hardware">{{ c.hardware.length }}</span>
+                  /
+                  <span class="count-badge" title="Software">{{ c.software.length }}</span>
+                </td>
+                <td class="td-actions" (click)="$event.stopPropagation()">
+                  <button class="btn-icon" title="Editar" (click)="router.navigate(['/contratos', c.id, 'editar'])">
+                    <span class="material-icon">edit</span>
+                  </button>
+                  <button class="btn-icon btn-icon--danger" title="Eliminar" (click)="onEliminar(c)">
+                    <span class="material-icon">delete</span>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
     </div>
   </div>
 }

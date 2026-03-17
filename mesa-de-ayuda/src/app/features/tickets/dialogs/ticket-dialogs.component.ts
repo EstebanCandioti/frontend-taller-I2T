@@ -160,7 +160,6 @@ export class TicketAsignarDialogComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: () => {
-        this.toast.success(isReasignar ? 'Tecnico reasignado correctamente.' : 'Tecnico asignado correctamente.');
         this.dialogService.close(true);
       },
       error: () => {
@@ -257,7 +256,6 @@ export class TicketCerrarDialogComponent {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: () => {
-        this.toast.success('Ticket cerrado correctamente.');
         this.dialogService.close(true);
       },
       error: () => {

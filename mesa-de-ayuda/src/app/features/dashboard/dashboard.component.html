@@ -7,8 +7,8 @@
       <p class="subtitle">Resumen general del sistema</p>
     </div>
 
-    <!-- Tarjetas de resumen -->
-    <div class="cards-grid">
+    <!-- Tarjetas principales -->
+    <div class="cards-grid cards-grid--main">
       <div class="stat-card card--tickets" (click)="navigateTickets('activos')">
         <div class="card-icon">
           <span class="material-icon">confirmation_number</span>
@@ -63,7 +63,10 @@
         </div>
         <span class="material-icon card-arrow">arrow_forward</span>
       </div>
+    </div>
 
+    <!-- Tarjetas de inventario -->
+    <div class="cards-grid cards-grid--inventory">
       <a class="stat-card card--hardware" routerLink="/hardware">
         <div class="card-icon">
           <span class="material-icon">computer</span>

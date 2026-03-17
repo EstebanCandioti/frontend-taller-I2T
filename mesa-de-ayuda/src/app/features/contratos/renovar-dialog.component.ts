@@ -48,7 +48,8 @@ import { ContratoResponse } from '../../core/models';
             <div class="form-group">
               <label for="monto" class="form-label">Nuevo Monto ($)</label>
               <input id="monto" type="number" formControlName="monto" class="form-control"
-                min="0" step="0.01" placeholder="Opcional">
+                min="0" step="0.01" placeholder="Opcional"
+                (keydown)="['e', 'E', '+', '-'].includes($event.key) ? $event.preventDefault() : null">
             </div>
 
             <div class="form-group">

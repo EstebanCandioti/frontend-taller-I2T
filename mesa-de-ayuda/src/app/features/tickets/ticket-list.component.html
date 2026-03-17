@@ -25,8 +25,8 @@
         [ngModel]="filtroEstado()"
         (ngModelChange)="filtroEstado.set($event); onFiltroChange()">
         <option value="">Todos</option>
-        @for (e of estados; track e) {
-          <option [value]="e">{{ e === 'EN_CURSO' ? 'En Curso' : (e | titlecase) }}</option>
+        @for (e of estados; track e.value) {
+          <option [value]="e.value">{{ e.label }}</option>
         }
       </select>
     </div>

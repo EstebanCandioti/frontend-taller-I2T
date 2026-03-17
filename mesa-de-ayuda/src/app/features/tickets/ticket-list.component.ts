@@ -74,7 +74,13 @@ export class TicketListComponent implements OnInit {
     { header: 'Fecha Creacion', field: 'fechaCreacion', format: (v) => v ? new Date(v).toLocaleDateString('es-AR') : '—' },
   ];
 
-  readonly estados = ['SOLICITADO', 'ASIGNADO', 'EN_CURSO', 'CERRADO'];
+  readonly estados = [
+    { value: 'SOLICITADO,ASIGNADO,EN_CURSO', label: 'Activos' },
+    { value: 'SOLICITADO', label: 'Solicitado' },
+    { value: 'ASIGNADO', label: 'Asignado' },
+    { value: 'EN_CURSO', label: 'En Curso' },
+    { value: 'CERRADO', label: 'Cerrado' },
+  ];
   readonly prioridades = ['BAJA', 'MEDIA', 'ALTA', 'CRITICA'];
 
   readonly Math = Math;

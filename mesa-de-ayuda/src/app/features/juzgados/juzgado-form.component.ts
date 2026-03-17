@@ -38,6 +38,7 @@ export class JuzgadoFormComponent implements OnInit, OnDestroy, HasUnsavedChange
   isEditing = false;
   juzgadoId?: number;
   submitted = false;
+  private initialFormValue: any = null;
 
   form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(150)]],
@@ -76,6 +77,7 @@ export class JuzgadoFormComponent implements OnInit, OnDestroy, HasUnsavedChange
           });
           this.breadcrumbService.setLabel(j.nombre);
           this.form.markAsPristine();
+          this.initialFormValue = this.form.getRawValue();
           this.loading.set(false);
         },
         error: () => {
@@ -132,12 +134,23 @@ export class JuzgadoFormComponent implements OnInit, OnDestroy, HasUnsavedChange
     this.breadcrumbService.reset();
   }
 
+  irACrearCircunscripcion(): void {
+    this.router.navigate(['/juzgados/circunscripciones/nueva'], {
+      queryParams: { returnUrl: this.router.url.split('?')[0] }
+    });
+  }
+
   isInvalid(field: string): boolean {
     const ctrl = this.form.get(field);
     return !!(ctrl && ctrl.invalid && ctrl.touched);
   }
 
+  get hasRealChanges(): boolean {
+    if (!this.initialFormValue) return !this.form.pristine;
+    return JSON.stringify(this.form.getRawValue()) !== JSON.stringify(this.initialFormValue);
+  }
+
   hasUnsavedChanges(): boolean {
-    return this.form.dirty && !this.submitted;
+    return this.hasRealChanges && !this.submitted;
   }
 }

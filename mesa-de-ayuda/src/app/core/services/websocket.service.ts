@@ -11,6 +11,9 @@ export class WebSocketService {
 
   private client: Client | null = null;
   private subscriptions: StompSubscription[] = [];
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private currentToken: string | null = null;
+  private manualDisconnect = false;
 
   private readonly notificationSubject = new Subject<WsNotification>();
   readonly notifications$ = this.notificationSubject.asObservable();
@@ -20,12 +23,18 @@ export class WebSocketService {
 
   private reconnectDelay = 1000;
   private readonly maxReconnectDelay = 30000;
+  private readonly maxReconnectAttempts = 12;
+  private reconnectAttempts = 0;
   private connected = false;
 
   connect(token: string): void {
-    if (this.client?.connected) return;
+    this.currentToken = token;
+    this.manualDisconnect = false;
 
-    this.disconnect();
+    if (this.client?.active || this.client?.connected) return;
+
+    this.cleanupClient();
+    this.connectionStatusSubject.next(false);
 
     this.client = new Client({
       webSocketFactory: () => new SockJS(this.buildSockJsUrl(token)),
@@ -37,7 +46,9 @@ export class WebSocketService {
         this.zone.run(() => {
           this.connected = true;
           this.reconnectDelay = 1000;
+          this.reconnectAttempts = 0;
           this.connectionStatusSubject.next(true);
+          this.clearReconnectTimer();
           this.subscribeToChannels();
         });
       },
@@ -46,15 +57,18 @@ export class WebSocketService {
         this.zone.run(() => {
           this.connected = false;
           this.connectionStatusSubject.next(false);
+          this.scheduleReconnect();
         });
+      },
+      onWebSocketError: (event) => {
+        console.error('WebSocket error:', event);
       },
       onWebSocketClose: () => {
         this.zone.run(() => {
-          if (this.connected) {
-            this.connected = false;
-            this.connectionStatusSubject.next(false);
-            this.scheduleReconnect(token);
-          }
+          this.connected = false;
+          this.connectionStatusSubject.next(false);
+          this.cleanupSubscriptions();
+          this.scheduleReconnect();
         });
       }
     });
@@ -63,16 +77,11 @@ export class WebSocketService {
   }
 
   disconnect(): void {
+    this.manualDisconnect = true;
+    this.currentToken = null;
+    this.clearReconnectTimer();
     this.connected = false;
-    this.subscriptions.forEach(s => {
-      try { s.unsubscribe(); } catch {}
-    });
-    this.subscriptions = [];
-
-    if (this.client) {
-      try { this.client.deactivate(); } catch {}
-      this.client = null;
-    }
+    this.cleanupClient();
 
     this.connectionStatusSubject.next(false);
   }
@@ -102,12 +111,19 @@ export class WebSocketService {
     }
   }
 
-  private scheduleReconnect(token: string): void {
-    setTimeout(() => {
-      if (!this.connected && this.client === null) return; // ya se desconecto intencionalmente
-      console.log(`WS reconnecting in ${this.reconnectDelay}ms...`);
+  private scheduleReconnect(): void {
+    if (this.manualDisconnect || !this.currentToken || this.reconnectTimer) return;
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.warn('WS max reconnect attempts reached, giving up');
+      return;
+    }
+
+    this.reconnectAttempts++;
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      if (this.manualDisconnect || !this.currentToken) return;
       this.reconnectDelay = Math.min(this.reconnectDelay * 2, this.maxReconnectDelay);
-      this.connect(token);
+      this.connect(this.currentToken);
     }, this.reconnectDelay);
   }
 
@@ -122,5 +138,28 @@ export class WebSocketService {
 
     url.searchParams.set('token', token);
     return url.toString();
+  }
+
+  private cleanupClient(): void {
+    this.cleanupSubscriptions();
+
+    if (this.client) {
+      try { this.client.deactivate(); } catch {}
+      this.client = null;
+    }
+  }
+
+  private cleanupSubscriptions(): void {
+    this.subscriptions.forEach(s => {
+      try { s.unsubscribe(); } catch {}
+    });
+    this.subscriptions = [];
+  }
+
+  private clearReconnectTimer(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
   }
 }
