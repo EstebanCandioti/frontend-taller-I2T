@@ -42,7 +42,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
         auth.logout();
         toast.error('Su sesion ha expirado. Inicie sesion nuevamente.');
       } else if (error.status === 403) {
-        toast.error('No tiene permisos para realizar esta accion.');
+        // Silencioso: el roleGuard ya redirige, no revelar rutas restringidas
       } else if (error.status === 404) {
         const apiError = error.error as ApiResponse<void>;
         toast.error(apiError?.message || 'Recurso no encontrado.');

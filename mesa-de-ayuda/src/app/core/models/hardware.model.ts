@@ -23,6 +23,14 @@ export interface HardwareRequest {
   observaciones?: string;
 }
 
+export interface SoftwareSimpleResponse {
+  id: number;
+  nombre: string;
+  proveedor: string;
+  cantidadLicencias: number;
+  licenciasEnUso: number;
+}
+
 export interface HardwareResponse {
   id: number;
   nroInventario: string;
@@ -39,4 +47,9 @@ export interface HardwareResponse {
   contratoNombre?: string;
   contratoFechaFin?: string;
   contratoVencido: boolean;
+  software?: SoftwareSimpleResponse[];
+}
+
+export interface HardwareSoftwareRequest {
+  softwareIds: number[];
 }

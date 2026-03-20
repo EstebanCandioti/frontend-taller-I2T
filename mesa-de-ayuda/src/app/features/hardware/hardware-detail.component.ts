@@ -4,11 +4,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 
 import { HardwareService } from '../../core/services/hardware.service';
-import { SoftwareService } from '../../core/services/software.service';
 import { ToastService } from '../../core/services/toast.service';
+
 import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { ConfirmDialogService } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { HardwareResponse, SoftwareResponse } from '../../core/models';
+import { HardwareResponse } from '../../core/models';
+import { SoftwareSimpleResponse } from '../../core/models/hardware.model';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
@@ -22,14 +23,13 @@ export class HardwareDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly hardwareService = inject(HardwareService);
-  private readonly softwareService = inject(SoftwareService);
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly breadcrumbService = inject(BreadcrumbService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly hardware = signal<HardwareResponse | null>(null);
-  readonly softwareVinculado = signal<SoftwareResponse[]>([]);
+  readonly softwareVinculado = signal<SoftwareSimpleResponse[]>([]);
   readonly loading = signal(true);
 
   ngOnInit(): void {
@@ -39,8 +39,8 @@ export class HardwareDetailComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: data => {
         this.hardware.set(data);
+        this.softwareVinculado.set(data.software || []);
         this.breadcrumbService.setLabel(`${data.nroInventario} — ${data.marca} ${data.modelo}`);
-        this.cargarSoftwareVinculado(data.id);
         this.loading.set(false);
       },
       error: () => {
@@ -80,19 +80,4 @@ export class HardwareDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  private cargarSoftwareVinculado(hardwareId: number): void {
-    this.softwareService.listarTodos().pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: software => {
-        const vinculados = (software ?? []).filter(sw =>
-          (sw.hardware ?? []).some(hw => hw.id === hardwareId)
-        );
-        this.softwareVinculado.set(vinculados);
-      },
-      error: () => {
-        this.softwareVinculado.set([]);
-      }
-    });
-  }
 }

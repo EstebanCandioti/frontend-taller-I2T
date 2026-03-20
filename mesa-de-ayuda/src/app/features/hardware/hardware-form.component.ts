@@ -1,15 +1,17 @@
-import { Component, inject, signal, OnInit, OnDestroy, DestroyRef } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy, DestroyRef, HostListener } from '@angular/core';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, debounceTime, distinctUntilChanged, switchMap, of, tap } from 'rxjs';
 
 import { HardwareService } from '../../core/services/hardware.service';
 import { JuzgadoService } from '../../core/services/juzgado.service';
 import { ContratoService } from '../../core/services/contrato.service';
+import { SoftwareService } from '../../core/services/software.service';
 import { ToastService } from '../../core/services/toast.service';
 import { BreadcrumbService } from '../../core/services/breadcrumb.service';
-import { JuzgadoResponse, ContratoResponse } from '../../core/models';
-import { HARDWARE_CLASSES } from '../../core/models/hardware.model';
+import { JuzgadoResponse, ContratoResponse, SoftwareResponse } from '../../core/models';
+import { SoftwareSimpleResponse, HARDWARE_CLASSES } from '../../core/models/hardware.model';
 import { HasUnsavedChanges } from '../../core/guards/unsaved-changes.guard';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { mapBackendErrors, scrollToFirstError } from '../../core/utils/form-error-mapper';
@@ -28,6 +30,7 @@ export class HardwareFormComponent implements OnInit, OnDestroy, HasUnsavedChang
   private readonly hardwareService = inject(HardwareService);
   private readonly juzgadoService = inject(JuzgadoService);
   private readonly contratoService = inject(ContratoService);
+  private readonly softwareService = inject(SoftwareService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly breadcrumbService = inject(BreadcrumbService);
@@ -40,10 +43,22 @@ export class HardwareFormComponent implements OnInit, OnDestroy, HasUnsavedChang
 
   readonly clases = [...HARDWARE_CLASSES];
 
+  // Software: lista de objetos seleccionados
+  readonly selectedSoftwareList = signal<SoftwareSimpleResponse[]>([]);
+  readonly selectedSoftwareIds = computed(() => this.selectedSoftwareList().map(s => s.id));
+
+  // Busqueda de software
+  readonly swSearchQuery = signal('');
+  readonly swSearchResults = signal<SoftwareResponse[]>([]);
+  readonly swSearching = signal(false);
+  readonly swSearchOpen = signal(false);
+  private readonly swSearch$ = new Subject<string>();
+
   isEditing = false;
   hardwareId?: number;
   submitted = false;
   private initialFormValue: any = null;
+  private initialSoftwareIds: number[] = [];
 
   form = this.fb.group({
     nroInventario: ['', [Validators.required, Validators.maxLength(50)]],
@@ -57,12 +72,39 @@ export class HardwareFormComponent implements OnInit, OnDestroy, HasUnsavedChang
     observaciones: ['']
   });
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.sw-search-wrapper')) {
+      this.swSearchOpen.set(false);
+    }
+  }
+
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       this.isEditing = true;
       this.hardwareId = +idParam;
     }
+
+    // Stream de busqueda de software con debounce
+    this.swSearch$.pipe(
+      debounceTime(350),
+      distinctUntilChanged(),
+      tap(() => this.swSearching.set(true)),
+      switchMap(term => {
+        if (term.trim().length < 2) {
+          return of([]);
+        }
+        return this.softwareService.listarTodos({ q: term }, 'nombre,asc', 20);
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(results => {
+      const selectedIds = this.selectedSoftwareIds();
+      this.swSearchResults.set(results.filter(s => !selectedIds.includes(s.id)));
+      this.swSearching.set(false);
+      this.swSearchOpen.set(true);
+    });
 
     // Cargar datos de selects
     this.juzgadoService.listar().pipe(
@@ -96,11 +138,13 @@ export class HardwareFormComponent implements OnInit, OnDestroy, HasUnsavedChang
             contratoId: hw.contratoId?.toString() || '',
             observaciones: hw.observaciones || ''
           });
+          this.selectedSoftwareList.set(hw.software || []);
           this.breadcrumbService.setLabel(hw.nroInventario + ' — ' + hw.marca + ' ' + hw.modelo);
           this.loading.set(false);
           this.loadingData.set(false);
           this.form.markAsPristine();
           this.initialFormValue = this.form.getRawValue();
+          this.initialSoftwareIds = [...this.selectedSoftwareIds()];
         },
         error: () => {
           this.toast.error('No se pudo cargar el hardware.');
@@ -110,6 +154,55 @@ export class HardwareFormComponent implements OnInit, OnDestroy, HasUnsavedChang
     } else {
       this.loadingData.set(false);
     }
+  }
+
+  // --- Software search + select ---
+  onSwSearchInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.swSearchQuery.set(value);
+    if (value.trim().length < 2) {
+      this.swSearchResults.set([]);
+      this.swSearchOpen.set(false);
+      return;
+    }
+    this.swSearch$.next(value.trim());
+  }
+
+  onSwSearchFocus(): void {
+    if (this.swSearchResults().length > 0) {
+      this.swSearchOpen.set(true);
+    }
+  }
+
+  addSoftwareFromSearch(sw: SoftwareResponse): void {
+    // Verificar licencias disponibles
+    if (sw.licenciasEnUso >= sw.cantidadLicencias) {
+      this.toast.error(`El software '${sw.nombre}' no tiene licencias disponibles (${sw.licenciasEnUso}/${sw.cantidadLicencias}).`);
+      return;
+    }
+
+    this.selectedSoftwareList.update(list => [...list, {
+      id: sw.id,
+      nombre: sw.nombre,
+      proveedor: sw.proveedor,
+      cantidadLicencias: sw.cantidadLicencias,
+      licenciasEnUso: sw.licenciasEnUso
+    }]);
+
+    // Limpiar busqueda
+    this.swSearchQuery.set('');
+    this.swSearchResults.set([]);
+    this.swSearchOpen.set(false);
+    this.markFormDirty();
+  }
+
+  removeSoftware(id: number): void {
+    this.selectedSoftwareList.update(list => list.filter(s => s.id !== id));
+    this.markFormDirty();
+  }
+
+  private markFormDirty(): void {
+    this.form.markAsDirty();
   }
 
   onSubmit(): void {
@@ -143,9 +236,32 @@ export class HardwareFormComponent implements OnInit, OnDestroy, HasUnsavedChang
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: (result) => {
-        this.toast.success(this.isEditing ? 'Hardware actualizado correctamente.' : 'Hardware registrado correctamente.');
-        this.form.markAsPristine();
-        this.router.navigate(['/hardware', result.id]);
+        // Actualizar software asociado via endpoint dedicado
+        const swIds = this.selectedSoftwareIds();
+        const softwareChanged = this.isEditing
+          ? JSON.stringify([...swIds].sort()) !== JSON.stringify([...this.initialSoftwareIds].sort())
+          : swIds.length > 0;
+
+        if (softwareChanged) {
+          this.hardwareService.actualizarSoftware(result.id, swIds).pipe(
+            takeUntilDestroyed(this.destroyRef)
+          ).subscribe({
+            next: () => {
+              this.toast.success(this.isEditing ? 'Hardware actualizado correctamente.' : 'Hardware registrado correctamente.');
+              this.form.markAsPristine();
+              this.router.navigate(['/hardware', result.id]);
+            },
+            error: () => {
+              this.toast.success(this.isEditing ? 'Hardware actualizado. Algunas relaciones de software no se pudieron guardar.' : 'Hardware registrado. Algunas relaciones de software no se pudieron guardar.');
+              this.form.markAsPristine();
+              this.router.navigate(['/hardware', result.id]);
+            }
+          });
+        } else {
+          this.toast.success(this.isEditing ? 'Hardware actualizado correctamente.' : 'Hardware registrado correctamente.');
+          this.form.markAsPristine();
+          this.router.navigate(['/hardware', result.id]);
+        }
       },
       error: (err) => {
         this.submitted = false;
@@ -169,7 +285,9 @@ export class HardwareFormComponent implements OnInit, OnDestroy, HasUnsavedChang
 
   get hasRealChanges(): boolean {
     if (!this.initialFormValue) return !this.form.pristine;
-    return JSON.stringify(this.form.getRawValue()) !== JSON.stringify(this.initialFormValue);
+    const formChanged = JSON.stringify(this.form.getRawValue()) !== JSON.stringify(this.initialFormValue);
+    const softwareChanged = JSON.stringify([...this.selectedSoftwareIds()].sort()) !== JSON.stringify([...this.initialSoftwareIds].sort());
+    return formChanged || softwareChanged;
   }
 
   hasUnsavedChanges(): boolean {

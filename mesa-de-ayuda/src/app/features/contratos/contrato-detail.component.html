@@ -131,7 +131,7 @@
           </thead>
           <tbody>
             @for (s of c.software; track s.id) {
-              <tr>
+              <tr class="clickable-row" (click)="router.navigate(['/software', s.id])">
                 <td class="td-bold">{{ s.nombre }}</td>
                 <td>{{ s.proveedor }}</td>
                 <td>{{ s.cantidadLicencias }}</td>

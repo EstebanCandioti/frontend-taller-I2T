@@ -181,5 +181,7 @@
   </div>
 }
 
-<app-ticket-asignar-dialog />
-<app-ticket-cerrar-dialog />
+@if (isAdminOrOperario()) {
+  <app-ticket-asignar-dialog />
+  <app-ticket-cerrar-dialog />
+}

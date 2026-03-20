@@ -6,7 +6,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TicketService } from '../../core/services/ticket.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
-import { UsuarioService } from '../../core/services/usuario.service';
 import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { TicketResponse } from '../../core/models';
 import { TicketDialogService, TicketAsignarDialogComponent, TicketCerrarDialogComponent } from './dialogs/ticket-dialogs.component';
@@ -31,7 +30,6 @@ interface TimelineStep {
 })
 export class TicketDetailComponent implements OnInit, OnDestroy {
   private readonly ticketService = inject(TicketService);
-  private readonly usuarioService = inject(UsuarioService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly ticketDialogService = inject(TicketDialogService);
@@ -174,8 +172,8 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
       next: ticket => {
         this.ticket.set(ticket);
         this.breadcrumbService.setLabel(ticket.titulo);
-        this.cargarTelefonoCreador(ticket.creadoPorId);
-        this.cargarTelefonoTecnico(ticket.tecnicoId);
+        this.creadorTelefono.set(ticket.creadoPorTelefono || null);
+        this.tecnicoTelefono.set(ticket.tecnicoTelefono || null);
         this.loading.set(false);
       },
       error: () => {
@@ -185,39 +183,7 @@ export class TicketDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  private cargarTelefonoCreador(usuarioId: number): void {
-    this.creadorTelefono.set(null);
-
-    this.usuarioService.obtenerPorId(usuarioId).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: usuario => {
-        this.creadorTelefono.set(usuario.telefono || null);
-      },
-      error: () => {
-        this.creadorTelefono.set(null);
-      }
-    });
-  }
-
   ngOnDestroy(): void {
     this.breadcrumbService.reset();
-  }
-
-  private cargarTelefonoTecnico(usuarioId?: number): void {
-    this.tecnicoTelefono.set(null);
-
-    if (!usuarioId) return;
-
-    this.usuarioService.obtenerPorId(usuarioId).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: usuario => {
-        this.tecnicoTelefono.set(usuario.telefono || null);
-      },
-      error: () => {
-        this.tecnicoTelefono.set(null);
-      }
-    });
   }
 }

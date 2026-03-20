@@ -20,6 +20,7 @@ export interface TicketResponse {
   juzgadoNombre: string;
   tecnicoId?: number;
   tecnicoNombreCompleto?: string;
+  tecnicoTelefono?: string;
   hardwareId?: number;
   hardwareNroInventario?: string;
   hardwareDescripcion?: string;
@@ -27,6 +28,7 @@ export interface TicketResponse {
   referenteTelefono?: string;
   creadoPorId: number;
   creadoPorNombreCompleto: string;
+  creadoPorTelefono?: string;
   resolucion?: string;
   fechaCreacion: string;
   fechaAsignacion?: string;

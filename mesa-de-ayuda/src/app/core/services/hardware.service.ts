@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApiResponse, PaginatedResponse, HardwareRequest, HardwareResponse } from '../models';
+import { ApiResponse, PaginatedResponse, HardwareRequest, HardwareResponse, HardwareSoftwareRequest } from '../models';
 
 export interface HardwareFiltros {
   juzgadoId?: number;
@@ -59,5 +59,11 @@ export class HardwareService {
     return this.http
       .delete<ApiResponse<void>>(`${this.baseUrl}/${id}`)
       .pipe(map(() => undefined));
+  }
+
+  actualizarSoftware(id: number, softwareIds: number[]): Observable<HardwareResponse> {
+    return this.http
+      .put<ApiResponse<HardwareResponse>>(`${this.baseUrl}/${id}/software`, { softwareIds } as HardwareSoftwareRequest)
+      .pipe(map(r => r.data));
   }
 }

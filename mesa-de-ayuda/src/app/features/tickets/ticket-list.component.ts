@@ -182,7 +182,7 @@ export class TicketListComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: data => this.juzgados.set(data ?? []),
-      error: (err) => console.error('Error al cargar juzgados:', err)
+      error: () => {}
     });
 
     this.usuarioService.tecnicosActivos().pipe(
@@ -213,7 +213,7 @@ export class TicketListComponent implements OnInit {
           this.tecnicos.set(tecnicos);
         }
       },
-      error: (err) => console.error('Error en fallback tecnicos:', err)
+      error: () => {}
     });
   }
 

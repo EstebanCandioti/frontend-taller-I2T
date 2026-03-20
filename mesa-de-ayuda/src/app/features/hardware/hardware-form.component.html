@@ -132,6 +132,53 @@
       </div>
     </div>
 
+    <!-- Software asociado (solo en edicion) -->
+    @if (isEditing) {
+      <div class="form-group">
+        <label class="form-label">Software instalado</label>
+        <div class="sw-search-wrapper">
+          <div class="sw-search-input-row">
+            <input type="text" class="form-control"
+              placeholder="Buscar software por nombre o proveedor..."
+              [value]="swSearchQuery()"
+              (input)="onSwSearchInput($event)"
+              (focus)="onSwSearchFocus()"
+              autocomplete="off">
+            @if (swSearching()) {
+              <span class="sw-search-spinner"></span>
+            }
+          </div>
+          @if (swSearchOpen() && swSearchResults().length > 0) {
+            <ul class="sw-search-results">
+              @for (s of swSearchResults(); track s.id) {
+                <li class="sw-search-item" (click)="addSoftwareFromSearch(s)">
+                  <span class="sw-item-name">{{ s.nombre }}</span>
+                  <span class="sw-item-provider">{{ s.proveedor }}</span>
+                  <span class="sw-item-licenses">{{ s.licenciasEnUso }}/{{ s.cantidadLicencias }} lic.</span>
+                </li>
+              }
+            </ul>
+          }
+          @if (swSearchOpen() && !swSearching() && swSearchResults().length === 0 && swSearchQuery().length >= 2) {
+            <div class="sw-search-results sw-search-empty">
+              Sin resultados para "{{ swSearchQuery() }}"
+            </div>
+          }
+        </div>
+        @if (selectedSoftwareList().length > 0) {
+          <div class="tags-container">
+            @for (s of selectedSoftwareList(); track s.id) {
+              <span class="tag tag-sw">
+                <span class="tag-sw-name">{{ s.nombre }}</span>
+                <span class="tag-sw-provider">{{ s.proveedor }}</span>
+                <button type="button" class="tag-remove" (click)="removeSoftware(s.id)" title="Quitar">&times;</button>
+              </span>
+            }
+          </div>
+        }
+      </div>
+    }
+
     <div class="form-group">
       <label for="observaciones" class="form-label">Observaciones</label>
       <textarea id="observaciones" formControlName="observaciones" class="form-control textarea"

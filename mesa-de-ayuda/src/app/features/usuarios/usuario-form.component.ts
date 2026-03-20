@@ -43,7 +43,7 @@ export class UsuarioFormComponent implements OnInit, OnDestroy, HasUnsavedChange
     apellido: ['', [Validators.required, Validators.maxLength(100)]],
     email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]],
     password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
-    telefono: ['', Validators.maxLength(30)],
+    telefono: ['', [Validators.required, Validators.maxLength(30)]],
     rolId: ['', Validators.required]
   });
 
@@ -114,7 +114,7 @@ export class UsuarioFormComponent implements OnInit, OnDestroy, HasUnsavedChange
       nombre: val.nombre!.trim(),
       apellido: val.apellido!.trim(),
       email: val.email!.trim(),
-      telefono: val.telefono?.trim() || undefined,
+      telefono: val.telefono!.trim(),
       rolId: +val.rolId!
     };
 
@@ -161,6 +161,7 @@ export class UsuarioFormComponent implements OnInit, OnDestroy, HasUnsavedChange
         apellido: 'El apellido es obligatorio.',
         email: 'El email es obligatorio.',
         password: 'La contrasena es obligatoria.',
+        telefono: 'El telefono es obligatorio.',
         rolId: 'Debe seleccionar un rol.'
       };
       return labels[field] || 'Campo obligatorio.';
